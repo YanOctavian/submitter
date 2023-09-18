@@ -234,7 +234,7 @@ pub struct CrossTxData {
     pub profit: U256,
 
     pub source_address: Address,
-    pub source_amount: Option<String>,
+    pub source_amount: String,
     pub source_chain: u64,
     // tx_hash
     pub source_id: String,
@@ -299,7 +299,7 @@ impl From<CrossTxRawData> for CrossTxData {
             dealer_address: Address::from_str(&value.dealer_address).unwrap(),
             profit: U256::from_dec_str(&value.trade_fee).unwrap(),
             source_address: value.source_address.parse().unwrap(),
-            source_amount: value.source_amount,
+            source_amount: "0".to_string(),
             source_chain: value.source_chain.parse().unwrap(),
             source_id: value.source_id,
             source_maker: Address::from_str(&value.source_maker).unwrap(),
