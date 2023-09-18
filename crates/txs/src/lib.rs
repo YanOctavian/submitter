@@ -2,6 +2,14 @@
 #![allow(unused_imports)]
 #![allow(unused_assignments)]
 
+// todo blocks-state {profit-state, txs-hash}
+// todo 每个区块计算一次txs-hash（要做好排序)和profit-state-root
+// todo 提交给链上的是blocks-state-root
+// todo event和txs应该是一起处理的 要不然获取不到准确的区块profit-state-root
+// todo 收到⌚事件和txs就对其他数据库进行处理
+// 问题： 如果自己错了 如何纠错？？？？
+
+
 pub mod funcs;
 pub mod rocks_db;
 pub mod sled_db;
