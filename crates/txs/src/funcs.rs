@@ -56,13 +56,13 @@ impl TxsCrawler {
                 .checked_sub(delay_timestamp)
                 .ok_or(anyhow::anyhow!(
                     "start_timestamp checked_sub delay_timestamp error"
-                ))?;
+                ))? * 1000;
         let end_timestamp = end_timestamp
             .checked_sub(delay_timestamp)
             .ok_or(anyhow::anyhow!(
                 "end_timestamp checked_sub delay_timestamp error"
-            ))?;
-
+            ))? * 1000;
+        println!("start_timestamp: {}, end_timestamp: {}", start_timestamp, end_timestamp);
         let res = self
             .client
             .post(self.url.clone())
@@ -73,7 +73,7 @@ impl TxsCrawler {
                 "method": self.method,
                 "params": [{
                     "id": chain_id,
-                    "timestamp": [start_timestamp*1000, end_timestamp*1000]
+                    "timestamp": [start_timestamp, end_timestamp]
                 }]
             }))
             .send()
@@ -83,7 +83,7 @@ impl TxsCrawler {
             || (res.status() == reqwest::StatusCode::CREATED)
         {
             let res: Value = serde_json::from_str(&res.text().await?)?;
-            // println!("response: {:#?}", res);
+            println!("response: {:#?}", res);
             let res: &Value = &res["result"][chain_id.to_string()];
             let old_txs: Vec<CrossTxRawData> = serde_json::from_value(res.clone())?;
             let mut new_txs: Vec<CrossTxRawData> = vec![];
@@ -261,12 +261,12 @@ pub mod test {
         let s = TxsCrawler::new(
             "https://openapi2.orbiter.finance/v3/yj6toqvwh1177e1sexfy0u1pxx5j8o47".to_string(),
         );
-        let end: u64 = 1694679528;
-        let duration: u64 = 1200;
+        let end: u64 = 1695030900;
+        let duration: u64 = 7200;
         let arb = 421613;
         let op = 420;
         let start = end - duration;
-        println!("start: {}, end: {}", start, end);
+        // let start = 1695030276;
         let a = s.request_txs(op, start, end, 0).await.unwrap();
         println!("a: {:?}", a);
         println!("len: {:?}", a.len());

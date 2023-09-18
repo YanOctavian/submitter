@@ -1,0 +1,18 @@
+
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"orbiter_getBridgeSuccessfulTransaction","params":[{"id":"421613","timestamp": [1695023700000,1695030900000]}],"id":1}' https://openapi2.orbiter.finance/v3/yj6toqvwh1177e1sexfy0u1pxx5j8o47
+
+/// remote
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"debug_updateProfit","params":{"user": "0x0000000000000000000000000000000000000022", "profit": {"token":"0x0000000000000000000000000000000000000022","token_chain_id":1,"balance":"0xc8","debt":"0x0"}},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
+// clear state
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"debug_clearState","params":{},"id":1}' http://localhost:50001
+// update profit
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"debug_updateProfitByCount","params":{"count": 100},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
+
+// get profit
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitInfo","params":{"user": "0x0000000000000000000000000000000000000022", "tokens": [[1, "0x0000000000000000000000000000000000000022"]]},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
+// get profit proof
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitProof","params":{"user": "0x0000000000000000000000000000000000000022", "tokens": [[1, "0x0000000000000000000000000000000000000022"]]},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
+// get root
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getRoot","params":{},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
+// get user profit
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getAllProfitInfo","params":{"address": "0x0000000000000000000000000000000000000022"},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
