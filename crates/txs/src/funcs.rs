@@ -82,7 +82,7 @@ impl TxsCrawler {
             || (res.status() == reqwest::StatusCode::CREATED)
         {
             let res: Value = serde_json::from_str(&res.text().await?)?;
-            println!("response: {:#?}", res);
+            // println!("response: {:#?}", res);
             let res: &Value = &res["result"][chain_id.to_string()];
             let old_txs: Vec<CrossTxRawData> = serde_json::from_value(res.clone())?;
             let mut new_txs: Vec<CrossTxRawData> = vec![];

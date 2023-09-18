@@ -90,11 +90,11 @@ impl TxsRocksDB {
             let k: CrossTxData = bincode::deserialize(&key)?;
             let v: CrossTxProfit = bincode::deserialize(&value)?;
             println!("key: {:?}, value: {:?}", k, v);
-            println!(
-                "start_timestamp: {}, end_timestamp: {}",
-                start_timestamp, end_timestamp
-            );
-            println!("tx timestamp: {:?}", k.target_time);
+            // println!(
+            //     "start_timestamp: {}, end_timestamp: {}",
+            //     start_timestamp, end_timestamp
+            // );
+            // println!("tx timestamp: {:?}", k.target_time);
             if k.target_time != end_timestamp {
                 txs.push((k, v));
             }
