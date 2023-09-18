@@ -264,27 +264,26 @@ pub struct CrossTxRawData {
     pub source_address: String,
     pub source_amount: Option<String>,
     pub source_chain: String,
-    // tx hash
     pub source_id: String,
     //
     pub source_maker: String,
-    pub source_symbol: String,
+    pub source_symbol: Option<String>,
     pub source_time: u64,
     pub source_token: String,
     // maker address
     pub target_address: String,
-    pub target_amount: String,
+    pub target_amount: Option<String>,
     pub target_chain: String,
     // tx_hash
     pub target_id: String,
     pub target_maker: Option<String>,
-    pub target_symbol: String,
+    pub target_symbol: Option<String>,
     pub target_time: u64,
     pub target_token: String,
 
     pub trade_fee: String,
     pub trade_fee_decimals: u8,
-    pub withholding_fee: String,
+    pub withholding_fee: Option<String>,
     pub withholding_fee_decimals: u8,
 }
 
@@ -299,19 +298,35 @@ impl From<CrossTxRawData> for CrossTxData {
             dealer_address: Address::from_str(&value.dealer_address).unwrap(),
             profit: U256::from_dec_str(&value.trade_fee).unwrap(),
             source_address: value.source_address.parse().unwrap(),
-            source_amount: "0".to_string(),
+            source_amount: if let Some(source_amount) = value.source_amount {
+                source_amount
+            } else {
+                String::from("0")
+            },
             source_chain: value.source_chain.parse().unwrap(),
             source_id: value.source_id,
             source_maker: Address::from_str(&value.source_maker).unwrap(),
-            source_symbol: value.source_symbol,
+            source_symbol: if let Some(source_symbol) = value.source_symbol {
+                source_symbol
+            } else {
+                String::from("")
+            },
             source_time: value.source_time,
             source_token: Address::from_str(&value.source_token).unwrap(),
             target_address: Address::from_str(&value.target_address).unwrap(),
-            target_amount: value.target_amount,
+            target_amount: if let Some(target_amount) = value.target_amount {
+                target_amount
+            } else {
+                String::from("0")
+            },
             target_chain: value.target_chain.parse().unwrap(),
             target_id: target_id.into(),
             target_maker: None,
-            target_symbol: value.target_symbol,
+            target_symbol: if let Some(target_symbol) = value.target_symbol {
+                target_symbol
+            } else {
+                String::from("")
+            },
             target_time: value.target_time,
             target_token: Address::from_str(&value.target_token).unwrap(),
         }

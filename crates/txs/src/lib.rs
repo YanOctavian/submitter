@@ -306,7 +306,14 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                             }
                         }
                         Err(e) => {
-                            event!(Level::WARN, "get txs err: {:?}. start: {:?}, end: {:?}. chain_id: {:?}", e, last_block_timestamp, now_block_timestamp, chain);
+                            event!(
+                                Level::WARN,
+                                "get txs err: {:?}. start: {:?}, end: {:?}. chain_id: {:?}",
+                                e,
+                                last_block_timestamp,
+                                now_block_timestamp,
+                                chain
+                            );
                             tokio::time::sleep(Duration::from_secs(3)).await;
                             continue;
                         }
@@ -458,13 +465,15 @@ async fn submit_root(
             let mut tx_hashes: Vec<H256> = Vec::new();
             for tx in txs {
                 let profit = tx.1.profit;
+                if profit == U256::from(0) {
+                    continue;
+                }
                 let maker = tx.1.maker_address;
                 let dealer = tx.1.dealer_address;
                 let chain_id = tx.1.chain_id;
                 let token_id = tx.1.token;
                 let maker_key = chain_token_address_convert_to_h256(chain_id, token_id, maker);
                 let dealer_key = chain_token_address_convert_to_h256(chain_id, token_id, dealer);
-
                 let mut maker_profit = ProfitStateData::default();
                 let mut dealer_profit = ProfitStateData::default();
                 {
@@ -496,6 +505,7 @@ async fn submit_root(
 
                 let h = convert_string_to_hash(tx.0.source_id);
                 tx_hashes.push(h);
+                println!("maker: {:?}, dealer: {:?}, profit: {:?}, chain_id: {:?}, token_id: {:?}", maker, dealer, profit, chain_id, token_id);
             }
 
             let txs_hash = get_one_block_txs_hash(tx_hashes);

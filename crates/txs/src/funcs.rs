@@ -56,12 +56,14 @@ impl TxsCrawler {
                 .checked_sub(delay_timestamp)
                 .ok_or(anyhow::anyhow!(
                     "start_timestamp checked_sub delay_timestamp error"
-                ))? * 1000;
+                ))?
+                * 1000;
         let end_timestamp = end_timestamp
             .checked_sub(delay_timestamp)
             .ok_or(anyhow::anyhow!(
                 "end_timestamp checked_sub delay_timestamp error"
-            ))? * 1000;
+            ))?
+            * 1000;
         let res = self
             .client
             .post(self.url.clone())
@@ -91,9 +93,12 @@ impl TxsCrawler {
                 tx.target_time = tx.target_time + delay_timestamp * 1000;
                 new_txs.push(tx);
             }
-            if new_txs.len() != 0 {
-                println!("start_timestamp: {}, end_timestamp: {}", start_timestamp, end_timestamp);
-            }
+            // if new_txs.len() != 0 {
+            //     println!(
+            //         "start_timestamp: {}, end_timestamp: {}",
+            //         start_timestamp, end_timestamp
+            //     );
+            // }
             return Ok(new_txs);
         } else {
             return Err(anyhow::anyhow!("err: {:#?}", res.text().await?));
