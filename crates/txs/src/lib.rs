@@ -59,15 +59,16 @@ impl Submitter {
         contract: Arc<SubmitterContract>,
         start_block: Arc<RwLock<u64>>,
         sled_db: Arc<Db>,
+        rocks_db: Arc<TxsRocksDB>,
         db_path: String,
     ) -> Self {
-        let txs_db = Arc::new(TxsRocksDB::new(db_path.clone()).unwrap());
+        // let txs_db = Arc::new(TxsRocksDB::new(db_path.clone()).unwrap());
         event!(Level::INFO, "rocks db is ready.");
         Self {
             profit_state,
             blocks_state,
             sled_db,
-            rocks_db: txs_db,
+            rocks_db: rocks_db,
             contract,
             start_block,
             db_path,
