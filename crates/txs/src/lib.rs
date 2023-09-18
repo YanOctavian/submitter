@@ -306,7 +306,7 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                             }
                         }
                         Err(e) => {
-                            event!(Level::WARN, "get txs err: {:?}", e,);
+                            event!(Level::WARN, "get txs err: {:?}. start: {:?}, end: {:?}", e, last_block_timestamp, now_block_timestamp);
                             continue;
                         }
                     }
