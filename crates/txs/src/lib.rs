@@ -3,7 +3,7 @@
 #![allow(unused_assignments)]
 
 pub mod funcs;
-mod rocks_db;
+pub mod rocks_db;
 pub mod sled_db;
 
 use crate::funcs::{SupportChains, TxsCrawler};

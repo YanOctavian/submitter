@@ -32,6 +32,7 @@ use tokio::sync::OnceCell;
 use tracing::{event, Level};
 use tracing_appender::rolling::daily;
 use tracing_subscriber::{fmt::format, FmtSubscriber};
+use txs::rocks_db::TxsRocksDB;
 use txs::{funcs::SupportChains, Submitter};
 
 pub struct JsonRpcServer {
@@ -179,11 +180,13 @@ pub async fn run() -> Result<()> {
     let user_tokens_db = Arc::new(txs::sled_db::UserTokensDB::new(sled_db.clone()).unwrap());
     let profit_statistics_db =
         Arc::new(txs::sled_db::ProfitStatisticsDB::new(sled_db.clone()).unwrap());
+    let txs_db = Arc::new(TxsRocksDB::new(args.db_path.clone()).unwrap());
     rpc_server.add_mothod(
         SubmitterApiServerImpl {
             state: profit_state.clone(),
             user_tokens_db: user_tokens_db.clone(),
             profit_statistics_db: profit_statistics_db.clone(),
+            txs_db: txs_db.clone(),
         }
         .into_rpc(),
     )?;

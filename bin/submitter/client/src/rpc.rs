@@ -23,7 +23,10 @@ use std::{
     str::FromStr,
     sync::{Arc, RwLock},
 };
-use txs::sled_db::{ProfitStatisticsDB, UserTokensDB};
+use txs::{
+    rocks_db::TxsRocksDB,
+    sled_db::{ProfitStatisticsDB, UserTokensDB},
+};
 use utils::{get_no1_merge_value, SMTBitMap};
 
 pub struct JsonRpcError(pub ErrorObjectOwned);
@@ -64,6 +67,7 @@ pub struct SubmitterApiServerImpl<'a> {
     pub state: Arc<RwLock<State<'a, Keccak256Hasher, ProfitStateData>>>,
     pub user_tokens_db: Arc<UserTokensDB>,
     pub profit_statistics_db: Arc<ProfitStatisticsDB>,
+    pub txs_db: Arc<TxsRocksDB>,
 }
 
 pub struct DebugApiServerImpl<'a> {
@@ -195,6 +199,10 @@ impl SubmitterApiServer for SubmitterApiServerImpl<'static> {
     async fn get_all_profit_info(&self, user: Address) -> RpcResult<Vec<ProfitStateDataForRpc>> {
         let tokens = self.user_tokens_db.get_tokens(user).unwrap();
         self.get_profit_info(user, tokens).await
+    }
+
+    async fn get_profit_by_tx_hash(&self, tx_hash: H256) -> RpcResult<Option<CrossTxProfit>> {
+        todo!()
     }
 
     async fn get_root(&self) -> RpcResult<String> {
