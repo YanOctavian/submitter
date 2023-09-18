@@ -234,7 +234,7 @@ pub struct CrossTxData {
     pub profit: U256,
 
     pub source_address: Address,
-    pub source_amount: String,
+    pub source_amount: Option<String>,
     pub source_chain: u64,
     // tx_hash
     pub source_id: String,
@@ -262,7 +262,7 @@ pub struct CrossTxRawData {
 
     // token
     pub source_address: String,
-    pub source_amount: String,
+    pub source_amount: Option<String>,
     pub source_chain: String,
     // tx hash
     pub source_id: String,
