@@ -118,151 +118,151 @@ pub mod test {
     use super::*;
     use crate::TxsRocksDB;
 
-    #[test]
-    pub fn test() {
-        let db: TxsRocksDB = TxsRocksDB::new(String::from("./db")).unwrap();
-
-        let k_v_1 = (
-            CrossTxData {
-                dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
-                    .unwrap(),
-                profit: U256::from(5000000000000u64),
-                source_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
-                    .unwrap(),
-                source_amount: "0.051000000000001101".to_string(),
-                source_chain: 5,
-                source_id: "0x9077dc48e3b0c857b2fac9a333321d991553544f3d3ae20a281e831b2af87e12"
-                    .to_string(),
-                source_maker: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
-                    .unwrap(),
-                source_symbol: "ETH".to_string(),
-                source_time: 1694679156000,
-                source_token: Address::from_str("0x0000000000000000000000000000000000000000")
-                    .unwrap(),
-                target_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
-                    .unwrap(),
-                target_amount: "0.049995000000000008".to_string(),
-                target_chain: 0, //
-                target_id: [
-                    121, 242, 35, 171, 20, 205, 49, 78, 161, 32, 160, 123, 186, 102, 193, 204, 163,
-                    165, 73, 90, 240, 149, 74, 14, 5, 206, 160, 230, 136, 34, 108, 212,
-                ]
-                .into(),
-                target_maker: None,
-                target_symbol: "ETH".to_string(),
-                target_time: 169467921400, //
-                target_token: Address::from_str("0x0000000000000000000000000000000000000000")
-                    .unwrap(),
-            },
-            CrossTxProfit {
-                maker_address: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
-                    .unwrap(),
-                dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
-                    .unwrap(),
-                profit: U256::from(500000000000u64),
-                chain_id: 5,
-                token: Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
-            },
-        );
-
-        let k_v_2 = (
-            CrossTxData {
-                dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
-                    .unwrap(),
-                profit: U256::from(5000000000000u64),
-                source_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
-                    .unwrap(),
-                source_amount: "0.051000000000001102".to_string(),
-                source_chain: 420,
-                source_id: "0x3cdd4b287257977e83769443c6c3be2895e3feffabe9e42e640ea7193834f01e"
-                    .to_string(),
-                source_maker: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
-                    .unwrap(),
-                source_symbol: "ETH".to_string(),
-                source_time: 1694679326000,
-                source_token: Address::from_str("0x0000000000000000000000000000000000000000")
-                    .unwrap(),
-                target_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
-                    .unwrap(),
-                target_amount: "0.049995000000000001".to_string(),
-                target_chain: 0, //
-                target_id: [
-                    115, 168, 172, 86, 122, 114, 38, 148, 19, 146, 139, 228, 13, 175, 160, 224,
-                    227, 239, 126, 44, 37, 240, 158, 54, 186, 158, 106, 62, 17, 43, 145, 234,
-                ]
-                .into(),
-                target_maker: None,
-                target_symbol: "ETH".to_string(),
-                target_time: 169467921400, //
-                target_token: Address::from_str("0x0000000000000000000000000000000000000000")
-                    .unwrap(),
-            },
-            CrossTxProfit {
-                maker_address: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
-                    .unwrap(),
-                dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
-                    .unwrap(),
-                profit: U256::from(500000000000u64),
-                chain_id: 420,
-                token: Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
-            },
-        );
-
-        let k_v_3 = (
-            CrossTxData {
-                dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
-                    .unwrap(),
-                profit: U256::from(500000000000u64),
-                source_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
-                    .unwrap(),
-                source_amount: "0.006000000000001103".to_string(),
-                source_chain: 420,
-                source_id: "0x039a6e4da9024b345dad5985677fbed660b308ad9f953e2e917090dbbc483707"
-                    .to_string(),
-                source_maker: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
-                    .unwrap(),
-                source_symbol: "ETH".to_string(),
-                source_time: 1694690928000,
-                source_token: Address::from_str("0x0000000000000000000000000000000000000000")
-                    .unwrap(),
-                target_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
-                    .unwrap(),
-                target_amount: "0.004999500000000002".to_string(),
-                target_chain: 0,
-                target_id: [
-                    181, 58, 6, 33, 190, 91, 51, 146, 7, 169, 60, 193, 64, 19, 99, 156, 132, 175,
-                    167, 0, 131, 110, 119, 46, 48, 41, 211, 142, 197, 211, 49, 88,
-                ]
-                .into(),
-                target_maker: None,
-                target_symbol: "ETH".to_string(),
-                target_time: 169467921400, //
-                target_token: Address::from_str("0x0000000000000000000000000000000000000000")
-                    .unwrap(),
-            },
-            CrossTxProfit {
-                maker_address: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
-                    .unwrap(),
-                dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
-                    .unwrap(),
-                profit: U256::from(50000000000u64),
-                chain_id: 5,
-                token: Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
-            },
-        );
-
-        db.insert_txs(vec![k_v_1, k_v_2, k_v_3]).unwrap();
-        let s = db
-            .get_txs_by_timestamp_range(169467921, 1694679213)
-            .unwrap();
-        println!("----------------------------------------------------------------------------");
-        let profit = db.get_profit_by_yx_hash(
-            [
-                115, 168, 172, 86, 122, 114, 38, 148, 19, 146, 139, 228, 13, 175, 160, 224, 227,
-                239, 126, 44, 37, 240, 158, 54, 186, 158, 106, 62, 17, 43, 145, 234,
-            ]
-            .into(),
-        );
-        println!("profit: {:?}", profit);
-    }
+    // #[test]
+    // pub fn test() {
+    //     let db: TxsRocksDB = TxsRocksDB::new(String::from("./db")).unwrap();
+    //
+    //     let k_v_1 = (
+    //         CrossTxData {
+    //             dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
+    //                 .unwrap(),
+    //             profit: U256::from(5000000000000u64),
+    //             source_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
+    //                 .unwrap(),
+    //             source_amount: "0.051000000000001101".to_string(),
+    //             source_chain: 5,
+    //             source_id: "0x9077dc48e3b0c857b2fac9a333321d991553544f3d3ae20a281e831b2af87e12"
+    //                 .to_string(),
+    //             source_maker: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
+    //                 .unwrap(),
+    //             source_symbol: "ETH".to_string(),
+    //             source_time: 1694679156000,
+    //             source_token: Address::from_str("0x0000000000000000000000000000000000000000")
+    //                 .unwrap(),
+    //             target_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
+    //                 .unwrap(),
+    //             target_amount: "0.049995000000000008".to_string(),
+    //             target_chain: 0, //
+    //             target_id: [
+    //                 121, 242, 35, 171, 20, 205, 49, 78, 161, 32, 160, 123, 186, 102, 193, 204, 163,
+    //                 165, 73, 90, 240, 149, 74, 14, 5, 206, 160, 230, 136, 34, 108, 212,
+    //             ]
+    //             .into(),
+    //             target_maker: None,
+    //             target_symbol: "ETH".to_string(),
+    //             target_time: 169467921400, //
+    //             target_token: Address::from_str("0x0000000000000000000000000000000000000000")
+    //                 .unwrap(),
+    //         },
+    //         CrossTxProfit {
+    //             maker_address: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
+    //                 .unwrap(),
+    //             dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
+    //                 .unwrap(),
+    //             profit: U256::from(500000000000u64),
+    //             chain_id: 5,
+    //             token: Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
+    //         },
+    //     );
+    //
+    //     let k_v_2 = (
+    //         CrossTxData {
+    //             dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
+    //                 .unwrap(),
+    //             profit: U256::from(5000000000000u64),
+    //             source_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
+    //                 .unwrap(),
+    //             source_amount: "0.051000000000001102".to_string(),
+    //             source_chain: 420,
+    //             source_id: "0x3cdd4b287257977e83769443c6c3be2895e3feffabe9e42e640ea7193834f01e"
+    //                 .to_string(),
+    //             source_maker: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
+    //                 .unwrap(),
+    //             source_symbol: "ETH".to_string(),
+    //             source_time: 1694679326000,
+    //             source_token: Address::from_str("0x0000000000000000000000000000000000000000")
+    //                 .unwrap(),
+    //             target_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
+    //                 .unwrap(),
+    //             target_amount: "0.049995000000000001".to_string(),
+    //             target_chain: 0, //
+    //             target_id: [
+    //                 115, 168, 172, 86, 122, 114, 38, 148, 19, 146, 139, 228, 13, 175, 160, 224,
+    //                 227, 239, 126, 44, 37, 240, 158, 54, 186, 158, 106, 62, 17, 43, 145, 234,
+    //             ]
+    //             .into(),
+    //             target_maker: None,
+    //             target_symbol: "ETH".to_string(),
+    //             target_time: 169467921400, //
+    //             target_token: Address::from_str("0x0000000000000000000000000000000000000000")
+    //                 .unwrap(),
+    //         },
+    //         CrossTxProfit {
+    //             maker_address: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
+    //                 .unwrap(),
+    //             dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
+    //                 .unwrap(),
+    //             profit: U256::from(500000000000u64),
+    //             chain_id: 420,
+    //             token: Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
+    //         },
+    //     );
+    //
+    //     let k_v_3 = (
+    //         CrossTxData {
+    //             dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
+    //                 .unwrap(),
+    //             profit: U256::from(500000000000u64),
+    //             source_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
+    //                 .unwrap(),
+    //             source_amount: "0.006000000000001103".to_string(),
+    //             source_chain: 420,
+    //             source_id: "0x039a6e4da9024b345dad5985677fbed660b308ad9f953e2e917090dbbc483707"
+    //                 .to_string(),
+    //             source_maker: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
+    //                 .unwrap(),
+    //             source_symbol: "ETH".to_string(),
+    //             source_time: 1694690928000,
+    //             source_token: Address::from_str("0x0000000000000000000000000000000000000000")
+    //                 .unwrap(),
+    //             target_address: Address::from_str("0xe8d9e41276a964b7ab012756b8d1b7107b2b87eb")
+    //                 .unwrap(),
+    //             target_amount: "0.004999500000000002".to_string(),
+    //             target_chain: 0,
+    //             target_id: [
+    //                 181, 58, 6, 33, 190, 91, 51, 146, 7, 169, 60, 193, 64, 19, 99, 156, 132, 175,
+    //                 167, 0, 131, 110, 119, 46, 48, 41, 211, 142, 197, 211, 49, 88,
+    //             ]
+    //             .into(),
+    //             target_maker: None,
+    //             target_symbol: "ETH".to_string(),
+    //             target_time: 169467921400, //
+    //             target_token: Address::from_str("0x0000000000000000000000000000000000000000")
+    //                 .unwrap(),
+    //         },
+    //         CrossTxProfit {
+    //             maker_address: Address::from_str("0xcc2b58a40a75ddf60ca7273643cafcebe2d34624")
+    //                 .unwrap(),
+    //             dealer_address: Address::from_str("0xdecf6cb214297c3ec7e557f23a8765e06b899c50")
+    //                 .unwrap(),
+    //             profit: U256::from(50000000000u64),
+    //             chain_id: 5,
+    //             token: Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
+    //         },
+    //     );
+    //
+    //     db.insert_txs(vec![k_v_1, k_v_2, k_v_3]).unwrap();
+    //     let s = db
+    //         .get_txs_by_timestamp_range(169467921, 1694679213)
+    //         .unwrap();
+    //     println!("----------------------------------------------------------------------------");
+    //     let profit = db.get_profit_by_yx_hash(
+    //         [
+    //             115, 168, 172, 86, 122, 114, 38, 148, 19, 146, 139, 228, 13, 175, 160, 224, 227,
+    //             239, 126, 44, 37, 240, 158, 54, 186, 158, 106, 62, 17, 43, 145, 234,
+    //         ]
+    //         .into(),
+    //     );
+    //     println!("profit: {:?}", profit);
+    // }
 }

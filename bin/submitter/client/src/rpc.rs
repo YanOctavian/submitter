@@ -67,7 +67,7 @@ pub struct SubmitterApiServerImpl<'a> {
     pub state: Arc<RwLock<State<'a, Keccak256Hasher, ProfitStateData>>>,
     pub user_tokens_db: Arc<UserTokensDB>,
     pub profit_statistics_db: Arc<ProfitStatisticsDB>,
-    pub txs_db: Arc<TxsRocksDB>,
+    // pub txs_db: Arc<TxsRocksDB>,
 }
 
 pub struct DebugApiServerImpl<'a> {
@@ -202,13 +202,14 @@ impl SubmitterApiServer for SubmitterApiServerImpl<'static> {
     }
 
     async fn get_profit_by_tx_hash(&self, tx_hash: H256) -> RpcResult<Option<CrossTxProfit>> {
-        self.txs_db.get_profit_by_yx_hash(tx_hash).map_err(|_| {
-            ErrorObject::owned(
-                1111,
-                format!("error: get tx's profit err."),
-                None::<bool>,
-            )
-        })
+        // self.txs_db.get_profit_by_yx_hash(tx_hash).map_err(|_| {
+        //     ErrorObject::owned(
+        //         1111,
+        //         format!("error: get tx's profit err."),
+        //         None::<bool>,
+        //     )
+        // })
+        todo!()
     }
 
     async fn get_root(&self) -> RpcResult<String> {

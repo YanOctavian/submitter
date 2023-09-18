@@ -258,25 +258,25 @@ pub mod test {
         //     }]
         // }
 
-        // let s = TxsCrawler::new(
-        //     "https://openapi2.orbiter.finance/v3/yj6toqvwh1177e1sexfy0u1pxx5j8o47".to_string(),
-        // );
-        // let end: u64 = 1694679528;
-        // let duration: u64 = 1200;
-        // let arb = 421613;
-        // let op = 420;
-        // let start = end - duration;
-        // println!("start: {}, end: {}", start, end);
-        // let a = s.request_txs(op, start, end, 0).await.unwrap();
-        // println!("a: {:?}", a);
-        // println!("len: {:?}", a.len());
-        // for tx in a {
-        //     println!("tx: {:?}", tx);
-        // }
-        //
-        // let b = convert_string_to_hash(
-        //     "0x9077dc48e3b0c857b2fac9a333321d991553544f3d3ae20a281e831b2af87e12".to_string(),
-        // );
-        // println!("b: {:?}", b);
+        let s = TxsCrawler::new(
+            "https://openapi2.orbiter.finance/v3/yj6toqvwh1177e1sexfy0u1pxx5j8o47".to_string(),
+        );
+        let end: u64 = 1694679528;
+        let duration: u64 = 1200;
+        let arb = 421613;
+        let op = 420;
+        let start = end - duration;
+        println!("start: {}, end: {}", start, end);
+        let a = s.request_txs(op, start, end, 0).await.unwrap();
+        println!("a: {:?}", a);
+        println!("len: {:?}", a.len());
+        for tx in a {
+            println!("tx: {:?}", tx);
+        }
+
+        let b = convert_string_to_hash(
+            "0x9077dc48e3b0c857b2fac9a333321d991553544f3d3ae20a281e831b2af87e12".to_string(),
+        );
+        println!("b: {:?}", b);
     }
 }
