@@ -240,6 +240,11 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                                     txs.clone().len(),
                                     chain,
                                 );
+                                println!(
+                                    "Block #{:?} successfully obtained {:} pieces of txs from chain {:}",
+                                    now_block,
+                                    txs.clone().len(),
+                                    chain,);
                             }
                             let mut tx_count = 0;
                             while tx_count < txs.len() {

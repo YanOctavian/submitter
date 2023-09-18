@@ -248,7 +248,7 @@ impl ContractTrait for SubmitterContract {
                         token_address: token,
                         balance: amount,
                     }));
-                    event!(Level::INFO, "erc20 log: {:?}", i);
+                    event!(Level::INFO, "Block #{:?} erc20 log: {:?}", block_number, i);
                 }
             }
         }
@@ -303,7 +303,7 @@ impl ContractTrait for SubmitterContract {
         if !a.is_empty() {
             event!(
                 Level::INFO,
-                "get block {:?} logs: {:?}",
+                "Block #{:?} logs: {:?}",
                 block_number,
                 a.clone()
             );
