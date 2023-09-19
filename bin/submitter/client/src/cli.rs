@@ -199,7 +199,7 @@ pub async fn run() -> Result<()> {
             }
             .into_rpc(),
         )?;
-        tokio::spawn(insert_profit_by_count(10_0000, profit_state.clone()));
+        tokio::spawn(insert_profit_by_count(100_0000, profit_state.clone()));
     }
 
     let server_handle = server.start(rpc_server.mothods.clone())?;
