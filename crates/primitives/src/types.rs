@@ -175,7 +175,7 @@ impl Tokenizable for BlocksStateData {
         Self: Sized,
     {
         if let Token::Tuple(tuple) = token {
-            if tuple.len() == 3 {
+            if tuple.len() == 4 {
                 let block_num = tuple[0]
                     .clone()
                     .into_uint()
