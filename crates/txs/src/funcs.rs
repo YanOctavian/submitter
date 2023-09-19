@@ -84,12 +84,14 @@ impl TxsCrawler {
             || (res.status() == reqwest::StatusCode::CREATED)
         {
             let res: Value = serde_json::from_str(&res.text().await?)?;
-            event!(Level::INFO, "response: {:#?}", res);
+            // event!(Level::INFO, "response: {:#?}", res);
             // println!("response: {:#?}", res);
             let res: &Value = &res["result"][chain_id.to_string()];
             let old_txs: Vec<CrossTxRawData> = serde_json::from_value(res.clone())?;
             let mut new_txs: Vec<CrossTxRawData> = vec![];
             for tx in old_txs {
+                println!("tx: {:?}", tx);
+                event!(Level::INFO, "tx: {:?}", tx);
                 let mut tx = tx;
                 tx.target_time = tx.target_time + delay_timestamp * 1000;
                 new_txs.push(tx);

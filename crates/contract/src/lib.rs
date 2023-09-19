@@ -326,7 +326,7 @@ impl ContractTrait for SubmitterContract {
             .await?;
         events.extend(erc_transfer_events);
         for i in events.clone() {
-            // println!("get event: {:?}", i);
+            println!("get event: {:?}", i);
         }
         let b = BlockInfo {
             storage: storage.unwrap(),
