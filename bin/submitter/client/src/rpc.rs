@@ -203,11 +203,7 @@ impl SubmitterApiServer for SubmitterApiServerImpl<'static> {
 
     async fn get_profit_by_tx_hash(&self, tx_hash: H256) -> RpcResult<Option<CrossTxProfit>> {
         self.txs_db.get_profit_by_yx_hash(tx_hash).map_err(|_| {
-            ErrorObject::owned(
-                1111,
-                format!("error: get tx's profit err."),
-                None::<bool>,
-            )
+            ErrorObject::owned(1111, format!("error: get tx's profit err."), None::<bool>)
         })
     }
 

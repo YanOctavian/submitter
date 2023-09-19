@@ -4,7 +4,6 @@
 
 // todo blocks-state {profit-state, txs-hash}
 // todo 每个区块计算一次txs-hash（要做好排序)和profit-state-root
-// todo 提交给链上的是blocks-state-root
 // todo event和txs应该是一起处理的 要不然获取不到准确的区块profit-state-root
 // todo 收到⌚事件和txs就对其他数据库进行处理
 // 问题： 如果自己错了 如何纠错？？？？
@@ -96,7 +95,6 @@ impl Submitter {
             self.sled_db.clone(),
             self.start_block.clone(),
             self.contract.clone(),
-            self.profit_state.clone(),
         ));
         tokio::spawn(crawl_txs_and_calculate_profit_for_per_block(
             self.sled_db.clone(),
@@ -124,8 +122,6 @@ async fn crawl_block_info(
     sled_db: Arc<Db>,
     start_block: Arc<RwLock<u64>>,
     contract: Arc<SubmitterContract>,
-    profit_state: Arc<RwLock<State<'static, Keccak256Hasher, ProfitStateData>>>,
-
 ) -> anyhow::Result<()> {
     let block_info_db = ContractBlockInfoDB::new(sled_db.clone())?;
     let mut now_block = 0u64;
@@ -162,19 +158,6 @@ async fn crawl_block_info(
                             for e in events {
                                 match e {
                                     Event::Withdraw(w_e) => {
-                                        let mut profit_state = profit_state.write().unwrap();
-                                        let user = chain_token_address_convert_to_h256(
-                                            w_e.chain_id,
-                                            w_e.token_address,
-                                            w_e.address,
-                                        );
-                                        let mut user_profit = profit_state.try_get(user).unwrap();
-                                        if user_profit == ProfitStateData::default() {
-                                            user_profit.token = w_e.token_address;
-                                            user_profit.token_chain_id = w_e.chain_id;
-                                        }
-                                        user_profit.sub_balance(w_e.balance).unwrap();
-                                        profit_state.try_update_all(vec![(user, user_profit)])?;
                                         user_tokens_db.insert_token(
                                             w_e.address,
                                             w_e.chain_id,
@@ -188,19 +171,6 @@ async fn crawl_block_info(
                                         )?;
                                     }
                                     Event::Deposit(d_e) => {
-                                        let mut profit_state = profit_state.write().unwrap();
-                                        let user = chain_token_address_convert_to_h256(
-                                            d_e.chain_id,
-                                            d_e.token_address,
-                                            d_e.address,
-                                        );
-                                        let mut user_profit = profit_state.try_get(user).unwrap();
-                                        if user_profit == ProfitStateData::default() {
-                                            user_profit.token = d_e.token_address;
-                                            user_profit.token_chain_id = d_e.chain_id;
-                                        }
-                                        user_profit.add_balance(d_e.balance).unwrap();
-                                        profit_state.try_update_all(vec![(user, user_profit)])?;
                                         user_tokens_db.insert_token(
                                             d_e.address,
                                             d_e.chain_id,
@@ -473,6 +443,42 @@ async fn submit_root(
                 now_block_info.storage.block_timestamp,
             );
 
+            let events = now_block_info.events;
+            for e in events {
+                match e {
+                    Event::Withdraw(w_e) => {
+                        let mut profit_state = profit_state.write().unwrap();
+                        let user = chain_token_address_convert_to_h256(
+                            w_e.chain_id,
+                            w_e.token_address,
+                            w_e.address,
+                        );
+                        let mut user_profit = profit_state.try_get(user).unwrap();
+                        if user_profit == ProfitStateData::default() {
+                            user_profit.token = w_e.token_address;
+                            user_profit.token_chain_id = w_e.chain_id;
+                        }
+                        user_profit.sub_balance(w_e.balance).unwrap();
+                        profit_state.try_update_all(vec![(user, user_profit)])?;
+                    }
+                    Event::Deposit(d_e) => {
+                        let mut profit_state = profit_state.write().unwrap();
+                        let user = chain_token_address_convert_to_h256(
+                            d_e.chain_id,
+                            d_e.token_address,
+                            d_e.address,
+                        );
+                        let mut user_profit = profit_state.try_get(user).unwrap();
+                        if user_profit == ProfitStateData::default() {
+                            user_profit.token = d_e.token_address;
+                            user_profit.token_chain_id = d_e.chain_id;
+                        }
+                        user_profit.add_balance(d_e.balance).unwrap();
+                        profit_state.try_update_all(vec![(user, user_profit)])?;
+                    }
+                }
+            }
+
             let txs = txs_db.get_txs_by_timestamp_range(timestamp_range.0, timestamp_range.1)?;
             let mut tx_hashes: Vec<H256> = Vec::new();
             for tx in txs {
@@ -544,9 +550,7 @@ async fn submit_root(
         }
 
         let profit_root = profit_state.read().unwrap().try_get_root()?;
-        let block_txs_root = blocks_state
-            .read()
-            .unwrap().try_get_root()?;
+        let block_txs_root = blocks_state.read().unwrap().try_get_root()?;
 
         if sparse_merkle_tree::H256::from(newest_block_info.storage.profit_root) == profit_root {
             event!(Level::INFO, "root is not changed, pending......");
