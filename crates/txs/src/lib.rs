@@ -5,7 +5,6 @@
 // todo blocks-state {profit-state, txs-hash}
 // todo 每个区块计算一次txs-hash（要做好排序)和profit-state-root
 // todo event和txs应该是一起处理的 要不然获取不到准确的区块profit-state-root
-// todo 收到⌚事件和txs就对其他数据库进行处理
 // 问题： 如果自己错了 如何纠错？？？？
 
 pub mod funcs;
@@ -544,6 +543,7 @@ async fn submit_root(
             };
 
             let old_block = b_w.try_get(last_key)?;
+            // todo 这里需要更改
             new_block.into_chain(old_block);
             b_w.try_update_all(vec![(now_key, new_block)])?;
             now_block_num += 1;

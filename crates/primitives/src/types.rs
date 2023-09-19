@@ -150,6 +150,7 @@ pub struct BlocksStateData {
     pub block_num: u64,
     pub root: [u8; 32],
     pub txs: [u8; 32],
+    pub profit_root: [u8; 32],
 }
 
 pub trait Chain {
@@ -161,6 +162,7 @@ impl Chain for BlocksStateData {
         let mut hasher = Keccak256Hasher::default();
         hasher.write_h256(&H256::from(old_block.root));
         hasher.write_h256(&H256::from(self.txs.clone()));
+        hasher.write_h256(&H256::from(self.profit_root));
         self.root = hasher.finish().into();
     }
 }
@@ -192,11 +194,18 @@ impl Tokenizable for BlocksStateData {
                     .ok_or(InvalidOutputType(format!(
                         "BlocksStateData from_token error: txs"
                     )))?;
+                let profit_root = tuple[3]
+                    .clone()
+                    .into_fixed_bytes()
+                    .ok_or(InvalidOutputType(format!(
+                        "BlocksStateData from_token error: profit_root"
+                    )))?;
 
                 return Ok(BlocksStateData {
                     block_num: block_num.as_u64(),
                     root: root[..32].to_owned().try_into().unwrap(),
                     txs: txs[..32].to_owned().try_into().unwrap(),
+                    profit_root: profit_root[..32].to_owned().try_into().unwrap(),
                 });
             }
         }
@@ -210,6 +219,7 @@ impl Tokenizable for BlocksStateData {
         tuple.push(Token::Uint(self.block_num.into()));
         tuple.push(Token::FixedBytes(self.root.into()));
         tuple.push(Token::FixedBytes(self.txs.into()));
+        tuple.push(Token::FixedBytes(self.profit_root.into()));
         Token::Tuple(tuple)
     }
 }
@@ -219,6 +229,7 @@ impl AbiDecode for BlocksStateData {
         decode(
             &vec![ParamType::Tuple(vec![
                 ParamType::Uint(64),
+                ParamType::FixedBytes(32),
                 ParamType::FixedBytes(32),
                 ParamType::FixedBytes(32),
             ])],
