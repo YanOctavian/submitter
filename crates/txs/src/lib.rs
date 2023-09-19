@@ -2,11 +2,6 @@
 #![allow(unused_imports)]
 #![allow(unused_assignments)]
 
-// todo blocks-state {profit-state, txs-hash}
-// todo 每个区块计算一次txs-hash（要做好排序)和profit-state-root
-// todo event和txs应该是一起处理的 要不然获取不到准确的区块profit-state-root
-// 问题： 如果自己错了 如何纠错？？？？
-
 pub mod funcs;
 pub mod rocks_db;
 pub mod sled_db;
@@ -536,14 +531,14 @@ async fn submit_root(
             let mut b_w = blocks_state.write().unwrap();
             let last_key = block_number_convert_to_h256(now_block_num - 1);
             let now_key = block_number_convert_to_h256(now_block_num);
+            let profit_root  = profit_state.read().unwrap().try_get_root()?;
             let mut new_block = BlocksStateData {
                 txs: txs_hash.into(),
                 block_num: now_block_num,
+                profit_root: profit_root.into(),
                 ..Default::default()
             };
-
             let old_block = b_w.try_get(last_key)?;
-            // todo 这里需要更改
             new_block.into_chain(old_block);
             b_w.try_update_all(vec![(now_key, new_block)])?;
             now_block_num += 1;
