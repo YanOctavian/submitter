@@ -9,7 +9,6 @@
 // todo 收到⌚事件和txs就对其他数据库进行处理
 // 问题： 如果自己错了 如何纠错？？？？
 
-
 pub mod funcs;
 pub mod rocks_db;
 pub mod sled_db;
@@ -97,6 +96,7 @@ impl Submitter {
             self.sled_db.clone(),
             self.start_block.clone(),
             self.contract.clone(),
+            self.profit_state.clone(),
         ));
         tokio::spawn(crawl_txs_and_calculate_profit_for_per_block(
             self.sled_db.clone(),
@@ -124,6 +124,8 @@ async fn crawl_block_info(
     sled_db: Arc<Db>,
     start_block: Arc<RwLock<u64>>,
     contract: Arc<SubmitterContract>,
+    profit_state: Arc<RwLock<State<'static, Keccak256Hasher, ProfitStateData>>>,
+
 ) -> anyhow::Result<()> {
     let block_info_db = ContractBlockInfoDB::new(sled_db.clone())?;
     let mut now_block = 0u64;
@@ -136,6 +138,8 @@ async fn crawl_block_info(
         now_block = now_block.saturating_sub(1);
     }
     event!(Level::INFO, "block info crawler is ready.");
+    let profit_statistic_db = ProfitStatisticsDB::new(sled_db.clone())?;
+    let user_tokens_db = UserTokensDB::new(sled_db.clone())?;
     loop {
         if let Ok(newest_block) = newest_block_receiver.recv().await {
             let trusted_block = newest_block.storage.block_number - ETH_DELAY_BLOCKS;
@@ -154,6 +158,63 @@ async fn crawl_block_info(
                                 "Block #{:} info is saved.",
                                 now_block_info.storage.block_number,
                             );
+                            let events = now_block_info.events;
+                            for e in events {
+                                match e {
+                                    Event::Withdraw(w_e) => {
+                                        let mut profit_state = profit_state.write().unwrap();
+                                        let user = chain_token_address_convert_to_h256(
+                                            w_e.chain_id,
+                                            w_e.token_address,
+                                            w_e.address,
+                                        );
+                                        let mut user_profit = profit_state.try_get(user).unwrap();
+                                        if user_profit == ProfitStateData::default() {
+                                            user_profit.token = w_e.token_address;
+                                            user_profit.token_chain_id = w_e.chain_id;
+                                        }
+                                        user_profit.sub_balance(w_e.balance).unwrap();
+                                        profit_state.try_update_all(vec![(user, user_profit)])?;
+                                        user_tokens_db.insert_token(
+                                            w_e.address,
+                                            w_e.chain_id,
+                                            w_e.token_address,
+                                        )?;
+                                        profit_statistic_db.update_total_withdraw(
+                                            w_e.address,
+                                            w_e.chain_id,
+                                            w_e.token_address,
+                                            w_e.balance,
+                                        )?;
+                                    }
+                                    Event::Deposit(d_e) => {
+                                        let mut profit_state = profit_state.write().unwrap();
+                                        let user = chain_token_address_convert_to_h256(
+                                            d_e.chain_id,
+                                            d_e.token_address,
+                                            d_e.address,
+                                        );
+                                        let mut user_profit = profit_state.try_get(user).unwrap();
+                                        if user_profit == ProfitStateData::default() {
+                                            user_profit.token = d_e.token_address;
+                                            user_profit.token_chain_id = d_e.chain_id;
+                                        }
+                                        user_profit.add_balance(d_e.balance).unwrap();
+                                        profit_state.try_update_all(vec![(user, user_profit)])?;
+                                        user_tokens_db.insert_token(
+                                            d_e.address,
+                                            d_e.chain_id,
+                                            d_e.token_address,
+                                        )?;
+                                        profit_statistic_db.update_total_deposit(
+                                            d_e.address,
+                                            d_e.chain_id,
+                                            d_e.token_address,
+                                            d_e.balance,
+                                        )?;
+                                    }
+                                }
+                            }
                         }
                         Err(e) => {
                             event!(
@@ -412,64 +473,6 @@ async fn submit_root(
                 now_block_info.storage.block_timestamp,
             );
 
-            let events = now_block_info.events;
-            for e in events {
-                match e {
-                    Event::Withdraw(w_e) => {
-                        let mut profit_state = profit_state.write().unwrap();
-                        let user = chain_token_address_convert_to_h256(
-                            w_e.chain_id,
-                            w_e.token_address,
-                            w_e.address,
-                        );
-                        let mut user_profit = profit_state.try_get(user).unwrap();
-                        if user_profit == ProfitStateData::default() {
-                            user_profit.token = w_e.token_address;
-                            user_profit.token_chain_id = w_e.chain_id;
-                        }
-                        user_profit.sub_balance(w_e.balance).unwrap();
-                        profit_state.try_update_all(vec![(user, user_profit)])?;
-                        user_tokens_db.insert_token(
-                            w_e.address,
-                            w_e.chain_id,
-                            w_e.token_address,
-                        )?;
-                        profit_statistic_db.update_total_withdraw(
-                            w_e.address,
-                            w_e.chain_id,
-                            w_e.token_address,
-                            w_e.balance,
-                        )?;
-                    }
-                    Event::Deposit(d_e) => {
-                        let mut profit_state = profit_state.write().unwrap();
-                        let user = chain_token_address_convert_to_h256(
-                            d_e.chain_id,
-                            d_e.token_address,
-                            d_e.address,
-                        );
-                        let mut user_profit = profit_state.try_get(user).unwrap();
-                        if user_profit == ProfitStateData::default() {
-                            user_profit.token = d_e.token_address;
-                            user_profit.token_chain_id = d_e.chain_id;
-                        }
-                        user_profit.add_balance(d_e.balance).unwrap();
-                        profit_state.try_update_all(vec![(user, user_profit)])?;
-                        user_tokens_db.insert_token(
-                            d_e.address,
-                            d_e.chain_id,
-                            d_e.token_address,
-                        )?;
-                        profit_statistic_db.update_total_deposit(
-                            d_e.address,
-                            d_e.chain_id,
-                            d_e.token_address,
-                            d_e.balance,
-                        )?;
-                    }
-                }
-            }
-
             let txs = txs_db.get_txs_by_timestamp_range(timestamp_range.0, timestamp_range.1)?;
             let mut tx_hashes: Vec<H256> = Vec::new();
             for tx in txs {
@@ -514,7 +517,10 @@ async fn submit_root(
 
                 let h = convert_string_to_hash(tx.0.source_id);
                 tx_hashes.push(h);
-                println!("maker: {:?}, dealer: {:?}, profit: {:?}, chain_id: {:?}, token_id: {:?}", maker, dealer, profit, chain_id, token_id);
+                println!(
+                    "maker: {:?}, dealer: {:?}, profit: {:?}, chain_id: {:?}, token_id: {:?}",
+                    maker, dealer, profit, chain_id, token_id
+                );
             }
 
             let txs_hash = get_one_block_txs_hash(tx_hashes);
@@ -540,9 +546,7 @@ async fn submit_root(
         let profit_root = profit_state.read().unwrap().try_get_root()?;
         let block_txs_root = blocks_state
             .read()
-            .unwrap()
-            .try_get(block_number_convert_to_h256(end_block_num - 1))?
-            .root;
+            .unwrap().try_get_root()?;
 
         if sparse_merkle_tree::H256::from(newest_block_info.storage.profit_root) == profit_root {
             event!(Level::INFO, "root is not changed, pending......");
@@ -554,7 +558,7 @@ async fn submit_root(
                 newest_block_info.storage.last_update_block,
                 end_block_num,
                 profit_root.into(),
-                block_txs_root,
+                block_txs_root.into(),
             )
             .await
         {
