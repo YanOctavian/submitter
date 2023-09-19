@@ -62,7 +62,6 @@ impl Submitter {
         rocks_db: Arc<TxsRocksDB>,
         db_path: String,
     ) -> Self {
-        // let txs_db = Arc::new(TxsRocksDB::new(db_path.clone()).unwrap());
         event!(Level::INFO, "rocks db is ready.");
         Self {
             profit_state,
