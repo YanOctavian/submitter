@@ -3955,7 +3955,7 @@ dependencies = [
 [[package]]
 name = "sparse-merkle-tree"
 version = "0.6.1"
-source = "git+https://github.com/YanOctavian/sparse-merkle-tree.git#66f35a038ae9c35298e5eb567b31f2a883b5a951"
+source = "git+https://github.com/YanOctavian/sparse-merkle-tree.git#15771c1dd501c6c55ee73699fc3e2ce348ca0b90"
 dependencies = [
  "blake2b-rs",
  "cc",
