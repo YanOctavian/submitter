@@ -474,7 +474,7 @@ async fn submit_root(
             }
 
             let txs = txs_db.get_txs_by_timestamp_range(timestamp_range.0, timestamp_range.1)?;
-            let mut tx_hashes: Vec<H256> = Vec::new();
+            let mut tx_hashes: Vec<H256> = vec![];
             for tx in txs {
                 let profit = tx.1.profit;
                 if profit == U256::from(0) {
@@ -523,7 +523,9 @@ async fn submit_root(
                 );
             }
 
-            let txs_hash = get_one_block_txs_hash(tx_hashes);
+            let txs_hash = get_one_block_txs_hash(tx_hashes.clone());
+            println!("tx hashes: {:?}", tx_hashes);
+            println!("txs hash: {:?}", txs_hash);
 
             if now_block_num == 0 {
                 unreachable!()
@@ -562,7 +564,8 @@ async fn submit_root(
             .await
         {
             Ok(hash) => {
-                event!(Level::INFO, "Profit root hash: {:?}", hash,);
+                event!(Level::INFO, "Profit root hash: {:?}", hash);
+                println!("end_block_num is {:?}", end_block_num);
             }
             Err(e) => {
                 event!(Level::WARN, "submit root err: {:?}", e,);
