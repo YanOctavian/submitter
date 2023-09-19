@@ -95,7 +95,7 @@ impl TxsRocksDB {
             // );
             // println!("tx timestamp: {:?}", k.target_time);
             if k.target_time != end_timestamp {
-                println!("key: {:?}, value: {:?}", k, v);
+                // println!("key: {:?}, value: {:?}", k, v);
                 txs.push((k, v));
             }
         }

@@ -524,8 +524,8 @@ async fn submit_root(
             }
 
             let txs_hash = get_one_block_txs_hash(tx_hashes.clone());
-            println!("tx hashes: {:?}", tx_hashes);
-            println!("txs hash: {:?}", txs_hash);
+            // println!("tx hashes: {:?}", tx_hashes);
+            // println!("txs hash: {:?}", txs_hash);
 
             if now_block_num == 0 {
                 unreachable!()

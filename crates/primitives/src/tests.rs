@@ -24,7 +24,7 @@ fn main() {
     println!("res: {:?}", res);
     println!("res hex: {:?}", hex::encode(res.as_slice()));
     let mut hasher = Keccak256Hasher::default();
-    hasher.write_h256(&H256::zero());
+    // hasher.write_h256(&H256::from([0; 32]));
     println!("hash: {:?}", hex::encode(hasher.finish().as_slice()));
 
 }

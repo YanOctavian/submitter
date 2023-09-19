@@ -228,6 +228,9 @@ pub fn calculate_profit(percent: u64, tx: CrossTxData) -> CrossTxProfit {
 }
 
 pub fn get_one_block_txs_hash(mut txs: Vec<H256>) -> H256 {
+    if txs.is_empty() {
+        return H256::zero();
+    }
     let mut hasher = Keccak256Hasher::default();
     txs.sort();
     for tx in txs {
