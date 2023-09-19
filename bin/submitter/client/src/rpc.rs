@@ -241,11 +241,11 @@ impl SubmitterApiServer for SubmitterApiServerImpl<'static> {
         if tokens.len() == 0 {
             return Ok(v);
         }
-        let root = state
-            .try_get_root()
-            .map_err(|e| Into::<JsonRpcError>::into(e))?;
 
         for i in tokens.clone() {
+            let root = state
+                .try_get_root()
+                .map_err(|e| Into::<JsonRpcError>::into(e))?;
             let bitmap_and_sils = state
                 .try_get_merkle_proof_1(chain_token_address_convert_to_h256(i.0, i.1, user))
                 .map_err(|e| Into::<JsonRpcError>::into(e))?;
