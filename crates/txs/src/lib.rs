@@ -531,7 +531,7 @@ async fn submit_root(
             let mut b_w = blocks_state.write().unwrap();
             let last_key = block_number_convert_to_h256(now_block_num - 1);
             let now_key = block_number_convert_to_h256(now_block_num);
-            let profit_root  = profit_state.read().unwrap().try_get_root()?;
+            let profit_root = profit_state.read().unwrap().try_get_root()?;
             let mut new_block = BlocksStateData {
                 txs: txs_hash.into(),
                 block_num: now_block_num,

@@ -1,5 +1,5 @@
 use crate::types::{
-    BlockInfo, BlockStorage, CrossTxProfit, Event, ProfitProof, ProfitStateData,
+    BlockInfo, BlockStorage, BlocksStateData, CrossTxProfit, Event, ProfitProof, ProfitStateData,
     ProfitStateDataForRpc,
 };
 use async_trait::async_trait;
@@ -50,6 +50,8 @@ pub trait SubmitterApi {
         address: Address,
         proof: Vec<u8>,
     ) -> RpcResult<bool>;
+    #[method(name = "getProfitRootByBlockNum")]
+    async fn get_profit_root_by_block_num(&self, block_num: u64) -> RpcResult<BlocksStateData>;
 }
 
 /// Several basic implementations of off-chain state.

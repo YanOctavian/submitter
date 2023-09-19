@@ -145,11 +145,15 @@ impl Tokenizable for ProfitStateData {
     }
 }
 
-#[derive(Debug, Clone, Default, Eq, PartialEq)]
+#[serde_as]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct BlocksStateData {
     pub block_num: u64,
+    #[serde_as(as = "serde_with::hex::Hex")]
     pub root: [u8; 32],
+    #[serde_as(as = "serde_with::hex::Hex")]
     pub txs: [u8; 32],
+    #[serde_as(as = "serde_with::hex::Hex")]
     pub profit_root: [u8; 32],
 }
 

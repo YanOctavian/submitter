@@ -11,8 +11,8 @@ curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method
 // get profit
 curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitInfo","params":{"user": "0x0000000000000000000000000000000000000022", "tokens": [[1, "0x0000000000000000000000000000000000000022"]]},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
 // get profit proof
-curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitProof","params":{"user": "0x0000000000000000000000000000000000000022", "tokens": [[1, "0x0000000000000000000000000000000000000022"]]},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitProof","params":{"user": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10", "tokens": [[5, "0x29b6a77911c1ce3b3849f28721c65dada015c768"]]},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
 // get root
 curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getRoot","params":{},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
 // get user profit
-curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getAllProfitInfo","params":{"address": "0x0000000000000000000000000000000000000022"},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getAllProfitInfo","params":{"address": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10"},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com

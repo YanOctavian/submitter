@@ -65,6 +65,7 @@ impl From<StateError> for JsonRpcError {
 
 pub struct SubmitterApiServerImpl<'a> {
     pub state: Arc<RwLock<State<'a, Keccak256Hasher, ProfitStateData>>>,
+    pub blocks_state: Arc<RwLock<State<'a, Keccak256Hasher, BlocksStateData>>>,
     pub user_tokens_db: Arc<UserTokensDB>,
     pub profit_statistics_db: Arc<ProfitStatisticsDB>,
     pub txs_db: Arc<TxsRocksDB>,
@@ -286,5 +287,20 @@ impl SubmitterApiServer for SubmitterApiServerImpl<'static> {
             .map_err(|e| Into::<JsonRpcError>::into(e))?
             == proof;
         Ok(verify)
+    }
+
+    async fn get_profit_root_by_block_num(&self, block_num: u64) -> RpcResult<BlocksStateData> {
+        let blocks_state = self.blocks_state.read().map_err(|_| {
+            ErrorObject::owned(
+                RWLOCK_READ_ERROR_CODE,
+                format!("error: state read error."),
+                None::<bool>,
+            )
+        })?;
+        let key = block_number_convert_to_h256(block_num);
+        let root = blocks_state
+            .try_get(key)
+            .map_err(|e| Into::<JsonRpcError>::into(e))?;
+        Ok(root)
     }
 }

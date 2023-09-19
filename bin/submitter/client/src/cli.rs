@@ -184,6 +184,7 @@ pub async fn run() -> Result<()> {
     rpc_server.add_mothod(
         SubmitterApiServerImpl {
             state: profit_state.clone(),
+            blocks_state: blocks_state.clone(),
             user_tokens_db: user_tokens_db.clone(),
             profit_statistics_db: profit_statistics_db.clone(),
             txs_db: txs_db.clone(),
