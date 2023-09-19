@@ -261,7 +261,7 @@ pub struct CrossTxRawData {
     pub dealer_address: String,
 
     // token
-    pub source_address: String,
+    pub source_address: Option<String>,
     pub source_amount: Option<String>,
     pub source_chain: String,
     pub source_id: String,
@@ -297,7 +297,7 @@ impl From<CrossTxRawData> for CrossTxData {
         CrossTxData {
             dealer_address: Address::from_str(&value.dealer_address).unwrap(),
             profit: U256::from_dec_str(&value.trade_fee).unwrap(),
-            source_address: value.source_address.parse().unwrap(),
+            source_address: Address::default(), //value.source_address.parse().unwrap(),
             source_amount: if let Some(source_amount) = value.source_amount {
                 source_amount
             } else {
