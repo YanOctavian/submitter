@@ -12,8 +12,8 @@ use ethers::{
 };
 use std::str::FromStr;
 // use ethers::types::H256;
-use sparse_merkle_tree::{traits::Hasher, H256};
 use crate::keccak256_hasher::Keccak256Hasher;
+use sparse_merkle_tree::{traits::Hasher, H256};
 
 #[test]
 fn main() {
@@ -26,5 +26,4 @@ fn main() {
     let mut hasher = Keccak256Hasher::default();
     // hasher.write_h256(&H256::from([0; 32]));
     println!("hash: {:?}", hex::encode(hasher.finish().as_slice()));
-
 }

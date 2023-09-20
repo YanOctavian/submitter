@@ -12,6 +12,7 @@ use ethers::{
 };
 use ethers_providers::StreamExt;
 use primitives::{
+    env::{get_fee_manager_contract_address, get_mainnet_chain_id, get_network_https_url},
     error::{Error as LocalError, Result},
     traits::Contract as ContractTrait,
     types::{BlockInfo, BlockStorage, DepositEvent, Event, FeeManagerDuration, WithdrawEvent},
@@ -59,10 +60,8 @@ impl SubmitterContract {
         now_block_num: Arc<RwLock<u64>>,
         support_mainnet_tokens: Arc<Vec<Address>>,
     ) -> Self {
-        let provider = Provider::<ethers::providers::Http>::try_from(
-            std::env::var("NETWORK_RPC_URL").unwrap(),
-        )
-        .unwrap();
+        let provider =
+            Provider::<ethers::providers::Http>::try_from(get_network_https_url()).unwrap();
 
         let client = SignerMiddleware::new_with_provider_chain(provider.clone(), wallet.clone())
             .await
@@ -122,10 +121,7 @@ impl ContractTrait for SubmitterContract {
         profit_root: [u8; 32],
         blocks_root: [u8; 32],
     ) -> Result<H256> {
-        let fee_manager_contract_address: H160 = std::env::var("FEE_MANAGER_CONTRACT_ADDRESS")
-            .unwrap()
-            .parse()
-            .unwrap();
+        let fee_manager_contract_address: H160 = get_fee_manager_contract_address();
         let fee_manager_contract =
             FeeManagerContract::new(fee_manager_contract_address, Arc::new(self.client.clone()));
 
@@ -169,10 +165,7 @@ impl ContractTrait for SubmitterContract {
     }
 
     async fn get_block_storage(&self, block_number: u64) -> Result<Option<BlockStorage>> {
-        let fee_manager_contract_address: H160 = std::env::var("FEE_MANAGER_CONTRACT_ADDRESS")
-            .unwrap()
-            .parse()
-            .unwrap();
+        let fee_manager_contract_address: H160 = get_fee_manager_contract_address();
         let fee_manager_contract =
             FeeManagerContract::new(fee_manager_contract_address, Arc::new(self.client.clone()));
         let mut block_storage: Option<BlockStorage> = None;
@@ -217,10 +210,7 @@ impl ContractTrait for SubmitterContract {
         if tokens.is_empty() {
             return Ok(vec![]);
         }
-        let fee_manager_contract_address: H160 = std::env::var("FEE_MANAGER_CONTRACT_ADDRESS")
-            .unwrap()
-            .parse()
-            .unwrap();
+        let fee_manager_contract_address: H160 = get_fee_manager_contract_address();
         let mut transfer_los: Vec<Event> = vec![];
         use ethers::abi::Abi;
         for token in tokens {
@@ -244,7 +234,7 @@ impl ContractTrait for SubmitterContract {
                     let amount = i.value;
                     transfer_los.push(Event::Deposit(DepositEvent {
                         address: user,
-                        chain_id: std::env::var("MAINNET_CHAIN_ID").unwrap().parse().unwrap(),
+                        chain_id: get_mainnet_chain_id(),
                         token_address: token,
                         balance: amount,
                     }));
@@ -257,10 +247,7 @@ impl ContractTrait for SubmitterContract {
     }
 
     async fn get_feemanager_contract_events(&self, block_number: u64) -> Result<Vec<Event>> {
-        let fee_manager_contract_address: H160 = std::env::var("FEE_MANAGER_CONTRACT_ADDRESS")
-            .unwrap()
-            .parse()
-            .unwrap();
+        let fee_manager_contract_address: H160 = get_fee_manager_contract_address();
         let fee_manager_contract =
             FeeManagerContract::new(fee_manager_contract_address, Arc::new(self.client.clone()));
         let withdraw_logs: Vec<WithdrawFilter> = fee_manager_contract
@@ -295,7 +282,7 @@ impl ContractTrait for SubmitterContract {
 
             a.push(Event::Deposit(DepositEvent {
                 address: user,
-                chain_id: std::env::var("MAINNET_CHAIN_ID").unwrap().parse().unwrap(),
+                chain_id: get_mainnet_chain_id(),
                 token_address: Default::default(),
                 balance: amount,
             }));
@@ -342,10 +329,7 @@ impl ContractTrait for SubmitterContract {
         _token_chian_id: u64,
         _token_id: Address,
     ) -> Result<u64> {
-        let fee_manager_contract_address: H160 = std::env::var("FEE_MANAGER_CONTRACT_ADDRESS")
-            .unwrap()
-            .parse()
-            .unwrap();
+        let fee_manager_contract_address: H160 = get_fee_manager_contract_address();
         let fee_manager_contract =
             FeeManagerContract::new(fee_manager_contract_address, Arc::new(self.client.clone()));
         let info = fee_manager_contract

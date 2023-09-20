@@ -15,6 +15,13 @@ use serde_with::serde_as;
 use sparse_merkle_tree::{h256::H256, merge::MergeValue, traits::Hasher};
 use std::{cmp::min, str::FromStr, sync::atomic::Ordering};
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum ChainType {
+    ZK,
+    OP,
+    Normal,
+}
+
 #[serde_as]
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ProfitProof {

@@ -2,7 +2,10 @@
 
 #[allow(unused_imports)]
 use super::*;
-use primitives::types::{CrossTxData, CrossTxRawData};
+use primitives::{
+    env::get_mainnet_chain_id,
+    types::{CrossTxData, CrossTxRawData},
+};
 use serde::{Deserialize, Serialize};
 use state::{Hasher, Keccak256Hasher};
 use std::string::String;
@@ -222,7 +225,7 @@ pub fn calculate_profit(percent: u64, tx: CrossTxData) -> CrossTxProfit {
         maker_address: tx.source_maker,
         dealer_address: tx.dealer_address,
         profit: profit,
-        chain_id: std::env::var("MAINNET_CHAIN_ID").unwrap().parse().unwrap(),
+        chain_id: get_mainnet_chain_id(),
         token: tx.source_token,
     }
 }

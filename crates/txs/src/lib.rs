@@ -12,10 +12,14 @@ use ethers::types::{Address, U256};
 use funcs::{calculate_profit, convert_string_to_hash, get_one_block_txs_hash};
 use primitives::{
     constants::ETH_DELAY_BLOCKS,
+    env::{
+        get_chains_info_source_url, get_delay_seconds_by_chain_type, get_mainnet_chain_id,
+        get_txs_source_url,
+    },
     func::{block_number_convert_to_h256, chain_token_address_convert_to_h256, tx_compare},
     traits::{Contract as ContractTrait, StataTrait},
     types::{
-        BlockInfo, BlocksStateData, Chain, CrossTxData, CrossTxProfit, Debt, Event,
+        BlockInfo, BlocksStateData, Chain, ChainType, CrossTxData, CrossTxProfit, Debt, Event,
         FeeManagerDuration, ProfitStateData, WithdrawEvent,
     },
 };
@@ -218,11 +222,8 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
     }
 
     let maker_profit_db = MakerProfitDB::new(sled_db.clone())?;
-    let txs_crawler =
-        TxsCrawler::new(std::env::var("TXS_SOURCE_URL").expect("TXS_SOURCE_URL is not set"));
-    let support_chains_crawler = SupportChains::new(
-        std::env::var("SUPPORT_CHAINS_SOURCE_URL").expect("SUPPORT_CHAINS_SOURCE_URL is not set"),
-    );
+    let txs_crawler = TxsCrawler::new(get_txs_source_url());
+    let support_chains_crawler = SupportChains::new(get_chains_info_source_url());
     let mut support_chains: Vec<u64> = support_chains_crawler.get_support_chains().await?;
     println!("support chains: {:?}", support_chains);
 
@@ -248,8 +249,8 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                     now_block_timestamp,
                 );
 
-                // fixme
-                let delay_timestamp = 900u64;
+                // todo get chain type by chain id
+                let delay_timestamp = get_delay_seconds_by_chain_type(ChainType::Normal);
                 let mut new_txs: Vec<(CrossTxData, CrossTxProfit)> = Vec::new();
                 let mut count = 0;
                 let mut chain_count = 0;
@@ -303,8 +304,7 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                                 let maker = tx.source_maker;
                                 let token = tx.source_token;
                                 let dealer = tx.dealer_address;
-                                let mainnet_chain_id =
-                                    std::env::var("MAINNET_CHAIN_ID").unwrap().parse().unwrap();
+                                let mainnet_chain_id = get_mainnet_chain_id();
                                 let mut percent = 0u64;
                                 if let Some(p) =
                                     maker_profit_db.get_percent(dealer, mainnet_chain_id, token)?
