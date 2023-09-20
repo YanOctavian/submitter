@@ -200,13 +200,14 @@ pub async fn run() -> Result<()> {
             }
             .into_rpc(),
         )?;
-        tokio::spawn(insert_profit_by_count(100_0000, profit_state.clone()));
+        // tokio::spawn(insert_profit_by_count(100_0000, profit_state.clone()));
     }
 
     let server_handle = server.start(rpc_server.mothods.clone())?;
 
     event!(Level::INFO, "Rpc server start at: {:?}", addr);
     tokio::spawn(server_handle.stopped());
+
     let start_block_num1 = Arc::new(tokio::sync::RwLock::new(args.start_block));
     let (s, r) = tokio::sync::broadcast::channel::<BlockInfo>(100);
     let support_chains_crawler = SupportChains::new(get_chains_info_source_url());

@@ -417,7 +417,6 @@ async fn submit_root(
                 continue;
             }
             let now_block_info = now_block_info_op.unwrap();
-            // fixme
             let last_block_info_op =
                 block_info_db.get_block_info(now_block_num.checked_sub(1).unwrap())?;
             if last_block_info_op.is_none() {
