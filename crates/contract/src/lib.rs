@@ -4,8 +4,8 @@ use crate::fee_manager_contract::WithdrawFilter;
 
 use async_trait::async_trait;
 use ethers::core::k256::{self, ecdsa::SigningKey, Secp256k1};
-use ethers::prelude::{FunctionCall, Multicall};
 use ethers::prelude::Wallet;
+use ethers::prelude::{FunctionCall, Multicall};
 use ethers::providers::Http;
 use ethers::{
     contract::{abigen, Contract, EthEvent},
@@ -185,11 +185,8 @@ impl ContractTrait for SubmitterContract {
                         Arc<SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>>,
                         SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>,
                         u8,
-                    > = fee_manager_contract
-                        .duration_check()
-                        .block(block_number);
-                    let duration = duration_check
-                        .await?;
+                    > = fee_manager_contract.duration_check().block(block_number);
+                    let duration = duration_check.await?;
 
                     // fixme
                     // let first_call = fee_manager_contract.method::<_, String>("getValue", ()).unwrap();
