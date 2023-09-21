@@ -56,6 +56,7 @@ pub struct ProfitStateDataForRpc {
 pub trait Debt {
     fn add_balance(&mut self, amount: U256) -> std::result::Result<(), String>;
     fn sub_balance(&mut self, amount: U256) -> std::result::Result<(), String>;
+    fn try_clear(&mut self) -> std::result::Result<(), String>;
 }
 
 impl Debt for ProfitStateData {
@@ -65,6 +66,7 @@ impl Debt for ProfitStateData {
         self.debt = debt.checked_sub(min_debt).ok_or("overflow")?;
         let amount = amount.checked_sub(min_debt).ok_or("overflow")?;
         self.balance = self.balance.checked_add(amount).ok_or("overflow")?;
+        self.try_clear()?;
         Ok(())
     }
 
@@ -72,6 +74,15 @@ impl Debt for ProfitStateData {
         let min_amount = min(amount, self.balance);
         self.balance = self.balance.checked_sub(min_amount).ok_or("overflow")?;
         self.debt = self.debt + (amount - min_amount);
+        self.try_clear()?;
+        Ok(())
+    }
+
+    fn try_clear(&mut self) -> std::result::Result<(), String> {
+        if self.balance.is_zero() && self.debt.is_zero() {
+            self.token = Address::default();
+            self.token_chain_id = 0;
+        }
         Ok(())
     }
 }
