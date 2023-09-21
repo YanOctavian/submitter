@@ -179,8 +179,7 @@ impl ContractTrait for SubmitterContract {
                         .block(block_number)
                         .await?;
 
-                    let s = fee_manager_contract
-                        .submissions();
+                    let s = fee_manager_contract.submissions();
                     let (_, endBlock, submitTimestamp, profitRoot, _) = fee_manager_contract
                         .submissions()
                         .block(block_number)

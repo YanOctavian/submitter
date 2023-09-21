@@ -135,9 +135,12 @@ async fn crawl_block_info(
     let user_tokens_db = UserTokensDB::new(sled_db.clone())?;
     loop {
         if let Ok(newest_block) = newest_block_receiver.recv().await {
-            let trusted_block = newest_block.storage.block_number - ETH_DELAY_BLOCKS;
-            event!(Level::INFO, "latest trusted block# {:}", trusted_block,);
-            while now_block <= trusted_block {
+            event!(
+                Level::INFO,
+                "latest trusted block# {:}",
+                newest_block.storage.block_number - ETH_DELAY_BLOCKS,
+            );
+            while now_block <= newest_block.storage.block_number - ETH_DELAY_BLOCKS {
                 if block_info_db.get_block_info(now_block)?.is_none() {
                     match contract.get_block_info(now_block).await {
                         Ok(Some(now_block_info)) => {
@@ -151,8 +154,7 @@ async fn crawl_block_info(
                                 "Block #{:} info is saved.",
                                 now_block_info.storage.block_number,
                             );
-                            let events = now_block_info.events;
-                            for e in events {
+                            for e in now_block_info.events {
                                 match e {
                                     Event::Withdraw(w_e) => {
                                         user_tokens_db.insert_token(
@@ -222,9 +224,9 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
     }
 
     let maker_profit_db = MakerProfitDB::new(sled_db.clone())?;
-    let txs_crawler = TxsCrawler::new(get_txs_source_url());
-    let support_chains_crawler = SupportChains::new(get_chains_info_source_url());
-    let mut support_chains: Vec<u64> = support_chains_crawler.get_support_chains().await?;
+    let mut support_chains: Vec<u64> = SupportChains::new(get_chains_info_source_url())
+        .get_support_chains()
+        .await?;
     println!("support chains: {:?}", support_chains);
 
     event!(Level::INFO, "txs crawler is ready.");
@@ -250,18 +252,17 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                 );
 
                 // todo get chain type by chain id
-                let delay_timestamp = get_delay_seconds_by_chain_type(ChainType::Normal);
                 let mut new_txs: Vec<(CrossTxData, CrossTxProfit)> = Vec::new();
                 let mut count = 0;
                 let mut chain_count = 0;
                 while chain_count < support_chains.len() {
                     let chain = support_chains[chain_count];
-                    match txs_crawler
+                    match TxsCrawler::new(get_txs_source_url())
                         .request_txs(
                             chain,
                             last_block_timestamp,
                             now_block_timestamp,
-                            delay_timestamp,
+                            get_delay_seconds_by_chain_type(ChainType::Normal),
                         )
                         .await
                     {
@@ -301,7 +302,6 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                                     tx_count += 1;
                                     continue;
                                 }
-                                let maker = tx.source_maker;
                                 let token = tx.source_token;
                                 let dealer = tx.dealer_address;
                                 let mainnet_chain_id = get_mainnet_chain_id();
@@ -435,8 +435,7 @@ async fn submit_root(
                 now_block_info.storage.block_timestamp,
             );
 
-            let events = now_block_info.events;
-            for e in events {
+            for e in now_block_info.events {
                 match e {
                     Event::Withdraw(w_e) => {
                         let mut profit_state = profit_state.write().unwrap();
