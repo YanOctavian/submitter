@@ -92,7 +92,7 @@ impl DebugApiServer for DebugApiServerImpl<'static> {
         Ok(())
     }
 
-    async fn update_profit(&self, user: Address, profit: ProfitStateData) -> RpcResult<H256> {
+    async fn update_profit(&self, user: Address, mut profit: ProfitStateData) -> RpcResult<H256> {
         let mut state = self.state.write().map_err(|_| {
             ErrorObject::owned(
                 RWLOCK_WRITE_ERROR_CODE,
@@ -105,6 +105,7 @@ impl DebugApiServer for DebugApiServerImpl<'static> {
             .insert_token(user, profit.token_chain_id, profit.token)
             .unwrap();
         let key = chain_token_address_convert_to_h256(profit.token_chain_id, profit.token, user);
+        profit.try_clear().unwrap();
         let root = state
             .try_update_all(vec![(key, profit)])
             .map_err(|e| Into::<JsonRpcError>::into(e))?;
