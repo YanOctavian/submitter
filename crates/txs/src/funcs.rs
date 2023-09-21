@@ -278,13 +278,13 @@ pub mod test {
         let s = TxsCrawler::new(
             "https://openapi2.orbiter.finance/v3/yj6toqvwh1177e1sexfy0u1pxx5j8o47".to_string(),
         );
-        let end: u64 = 1695023688;
+        let end: u64 = 1695284033;
         let duration: u64 = 7200;
         let arb = 421613;
         let op = 420;
-        // let start = end - duration;
-        let start = 1695023676;
-        let a = s.request_txs(5, start, end, 900).await.unwrap();
+        let start = end - duration;
+        // let start = 1695023676;
+        let a = s.request_txs(op, start, end, 0).await.unwrap();
         println!("a: {:?}", a);
         println!("len: {:?}", a.len());
         for tx in a {
