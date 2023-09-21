@@ -14,3 +14,4 @@ anyhow = "1.0.75"
 ethers-providers = {git = "https://github.com/gakonst/ethers-rs.git"}
 serde = "1.0.188"
 tracing.workspace = true
+ecdsa = "0.16.8"

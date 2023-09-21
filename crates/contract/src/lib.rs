@@ -3,6 +3,10 @@ mod tests;
 use crate::fee_manager_contract::WithdrawFilter;
 
 use async_trait::async_trait;
+use ethers::core::k256::{self, ecdsa::SigningKey, Secp256k1};
+use ethers::prelude::{FunctionCall, Multicall};
+use ethers::prelude::Wallet;
+use ethers::providers::Http;
 use ethers::{
     contract::{abigen, Contract, EthEvent},
     middleware::{Middleware, SignerMiddleware},
@@ -63,9 +67,10 @@ impl SubmitterContract {
         let provider =
             Provider::<ethers::providers::Http>::try_from(get_network_https_url()).unwrap();
 
-        let client = SignerMiddleware::new_with_provider_chain(provider.clone(), wallet.clone())
-            .await
-            .unwrap();
+        let client: SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>> =
+            SignerMiddleware::new_with_provider_chain(provider.clone(), wallet.clone())
+                .await
+                .unwrap();
         event!(
             Level::INFO,
             "Successfully connected to the ethereum network. Support mainnet tokens: {:?}",
@@ -125,12 +130,14 @@ impl ContractTrait for SubmitterContract {
         let fee_manager_contract =
             FeeManagerContract::new(fee_manager_contract_address, Arc::new(self.client.clone()));
 
-        let res: Option<TransactionReceipt> = fee_manager_contract
+        let s: FunctionCall<
+            Arc<SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>>,
+            SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>,
+            (),
+        > = fee_manager_contract
             .submit(start, end, profit_root, blocks_root)
-            .gas(2000000)
-            .send()
-            .await?
-            .await?;
+            .gas(2000000);
+        let res: Option<TransactionReceipt> = s.send().await?.await?;
 
         match res {
             None => {
@@ -174,10 +181,27 @@ impl ContractTrait for SubmitterContract {
             match block_info {
                 None => {}
                 Some(b) => {
-                    let duration = fee_manager_contract
+                    let duration_check: FunctionCall<
+                        Arc<SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>>,
+                        SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>,
+                        u8,
+                    > = fee_manager_contract
                         .duration_check()
-                        .block(block_number)
+                        .block(block_number);
+                    let duration = duration_check
                         .await?;
+
+                    // fixme
+                    // let first_call = fee_manager_contract.method::<_, String>("getValue", ()).unwrap();
+                    // let mut multicall = Multicall::new(self.client.clone(), None).await.unwrap();
+                    // multicall.add_call(first_call, false);
+                    // let results = multicall.call().await.unwrap();
+                    // let tx_receipt = multicall.send().await?.await.expect("tx dropped");
+                    // multicall
+                    //     .clear_calls()
+                    //     .add_get_eth_balance(address_1, false)
+                    //     .add_get_eth_balance(address_2, false);
+                    // let balances: (U256, U256) = multicall.call().await?;
 
                     let s = fee_manager_contract.submissions();
                     let (_, endBlock, submitTimestamp, profitRoot, _) = fee_manager_contract
