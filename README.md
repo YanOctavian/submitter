@@ -63,6 +63,7 @@ export COMMON_DELAY_SECONDS=900
    In your blockchain wallet, obtain the EOA private key, such as `0xed0e10acdb4b9ad17a0d9ec1b6f92d9e70d9f9c0bbfc609eb1aa03a370aba499`
 
 9. run submitter
+> If you want to resynchronize data from 18212105, then execute `rm -rf db`
 ```angular2html
 ./target/release/submitter
 ```
