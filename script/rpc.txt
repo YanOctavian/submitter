@@ -20,10 +20,10 @@ curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method
 curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitRootByBlockNum","params":{"block_num": 9739000},"id":1}' http://ec2-user@ec2-18-177-96-112.ap-northeast-1.compute.amazonaws.com
 
 /// local
-curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"debug_updateProfit","params":{"user": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10", "profit": {"token":"0x0000000000000000000000000000000000000022","token_chain_id":1,"balance":"0xc8","debt":"0xc8"}},"id":1}' http://127.0.0.1:50001
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"debug_updateProfit","params":{"user": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10", "profit": {"token":"0x0000000000000000000000000000000000000000","token_chain_id":1,"balance":"0x470de4df820000","debt":"0x0"}},"id":1}' http://127.0.0.1:50001
 curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getRoot","params":{},"id":1}' http://127.0.0.1:50001
-curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitInfo","params":{"user": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10", "tokens": [[1, "0x0000000000000000000000000000000000000022"]]},"id":1}' http://127.0.0.1:50001
-curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitProof","params":{"user": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10", "tokens": [[1, "0x0000000000000000000000000000000000000022"]]},"id":1}' http://127.0.0.1:50001
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitInfo","params":{"user": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10", "tokens": [[1, "0x0000000000000000000000000000000000000000"]]},"id":1}' http://127.0.0.1:50001
+curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"submitter_getProfitProof","params":{"user": "0xc3C7A782dda00a8E61Cb9Ba0ea8680bb3f3B9d10", "tokens": [[1, "0x0000000000000000000000000000000000000000"]]},"id":1}' http://127.0.0.1:50001
 curl -v -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"debug_clearState","params":{},"id":1}' http://localhost:50001
 
 http://ec2-54-178-128-164.ap-northeast-1.compute.amazonaws.com:9009/?dealerId=0xD6Cec62CE67E09b240B84A3FB53cC1EbA05795d6&source=Arbitrum%28G%29&dest=Optimism%28G%29
