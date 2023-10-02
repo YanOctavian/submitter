@@ -3,10 +3,13 @@ mod tests;
 use crate::fee_manager_contract::WithdrawFilter;
 
 use async_trait::async_trait;
+use ethers::contract::parse_log;
+use ethers::contract::ContractError;
 use ethers::core::k256::{self, ecdsa::SigningKey, Secp256k1};
 use ethers::prelude::Wallet;
 use ethers::prelude::{FunctionCall, Multicall};
 use ethers::providers::Http;
+use ethers::types::Log;
 use ethers::{
     contract::{abigen, Contract, EthEvent},
     middleware::{Middleware, SignerMiddleware},
@@ -22,8 +25,9 @@ use primitives::{
     types::{BlockInfo, BlockStorage, DepositEvent, Event, FeeManagerDuration, WithdrawEvent},
 };
 
-use std::{option::Option, str::FromStr, sync::Arc, time::Duration};
+use ethers::abi::Abi;
 use ethers::types::U64;
+use std::{option::Option, str::FromStr, sync::Arc, time::Duration};
 use tokio::sync::{broadcast::Sender, RwLock};
 use tracing::{event, span, Level};
 
@@ -175,7 +179,7 @@ impl ContractTrait for SubmitterContract {
                     if status == 0.into() {
                         return Err(LocalError::SubmitRootFailed(
                             "transaction receipt status is 0".to_string(),
-                            tr.block_number
+                            tr.block_number,
                         ));
                     } else {
                         return Ok((tr.transaction_hash, tr.block_number));
@@ -204,7 +208,6 @@ impl ContractTrait for SubmitterContract {
             SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>,
             u8,
         > = fee_manager_contract.duration_check().block(block_number);
-        let duration = duration_check.clone().await?;
 
         let submissions: FunctionCall<
             Arc<SignerMiddleware<ethers_providers::Provider<Http>, Wallet<SigningKey>>>,
@@ -256,29 +259,41 @@ impl ContractTrait for SubmitterContract {
         tokens: Vec<H160>,
         block_number: u64,
     ) -> Result<Vec<Event>> {
-        // let span = span!(Level::INFO, "get_erc20_transfer_events_by_tokens_id");
-        // let _enter = span.enter();
         if tokens.is_empty() {
             return Ok(vec![]);
         }
         let fee_manager_contract_address: H160 = get_fee_manager_contract_address();
         let mut transfer_los: Vec<Event> = vec![];
-        use ethers::abi::Abi;
-        for token in tokens {
-            let contract = Contract::new(token, Abi::default(), Arc::new(self.provider.clone()));
-            let _event = contract.event::<Transfer>();
-            let f = Filter::new()
-                .select(block_number)
-                .event(&Transfer::name())
-                .topic0(
-                    H256::from_str(
-                        "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                    )
+
+        // let contract = Contract::new(token, Abi::default(), Arc::new(self.provider.clone()));
+        // let _event = contract.event::<Transfer>();
+        // let logs: Vec<Transfer> = contract.event_with_filter(f).query().await?;
+
+        let f = Filter::new()
+            .select(block_number)
+            .event(&Transfer::name())
+            .topic0(
+                H256::from_str("ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
                     .unwrap(),
-                )
-                .topic2(fee_manager_contract_address);
-            let logs: Vec<Transfer> = contract.event_with_filter(f).query().await?;
-            for i in logs {
+            )
+            .topic2(fee_manager_contract_address);
+
+        let logs: Vec<Log> = self.provider.get_logs(&f).await?;
+        for token in tokens {
+            let logs: Vec<Log> = logs
+                .clone()
+                .into_iter()
+                .filter_map(|j| if j.address == token { Some(j) } else { None })
+                .collect();
+            let events: Vec<Transfer> = logs
+                .into_iter()
+                .map(|log| Ok(parse_log::<Transfer>(log)?))
+                .collect::<std::result::Result<
+                    Vec<_>,
+                    ContractError<SignerMiddleware<Provider<ethers_providers::Http>, LocalWallet>>,
+                >>()?;
+
+            for i in events {
                 if i.to == fee_manager_contract_address {
                     let user = i.from;
                     let token = token;
@@ -311,18 +326,21 @@ impl ContractTrait for SubmitterContract {
             get_fee_manager_contract_address(),
             Arc::new(self.client.clone()),
         );
-        let withdraw_logs: Vec<WithdrawFilter> = fee_manager_contract
+        let get_withdraw_logs = fee_manager_contract
             .withdraw_filter()
             .from_block(block_number)
-            .to_block(block_number)
-            .query()
-            .await?;
-        let deposit_logs: Vec<EthdepositFilter> = fee_manager_contract
+            .to_block(block_number);
+
+        let get_deposit_logs = fee_manager_contract
             .eth_deposit_filter()
             .from_block(block_number)
-            .to_block(block_number)
-            .query()
-            .await?;
+            .to_block(block_number);
+
+        let (withdraw_logs, deposit_logs) =
+            tokio::join!(get_withdraw_logs.query(), get_deposit_logs.query(),);
+
+        let withdraw_logs: Vec<WithdrawFilter> = withdraw_logs?;
+        let deposit_logs: Vec<EthdepositFilter> = deposit_logs?;
         let mut a: Vec<Event> = vec![];
         for i in withdraw_logs {
             event!(
@@ -367,19 +385,22 @@ impl ContractTrait for SubmitterContract {
     }
 
     async fn get_block_info(&self, block_number: u64) -> Result<Option<BlockInfo>> {
-        // let span = span!(Level::INFO, "get_block_info");
-        // let _enter = span.enter();
-        let storage = self.get_block_storage(block_number).await?;
+        let storage = self.get_block_storage(block_number);
+        let events = self.get_feemanager_contract_events(block_number);
+        let erc_transfer_events = self.get_erc20_transfer_events_by_tokens_id(
+            self.support_mainnet_tokens.as_ref().clone(),
+            block_number,
+        );
+        let (storage, get_feemanager_contract_events, erc_transfer_events) =
+            tokio::join!(storage, events, erc_transfer_events,);
+
+        let storage = storage?;
         if storage.is_none() {
             return Ok(None);
         }
-        let mut events: Vec<Event> = self.get_feemanager_contract_events(block_number).await?;
-        let erc_transfer_events = self
-            .get_erc20_transfer_events_by_tokens_id(
-                self.support_mainnet_tokens.as_ref().clone(),
-                block_number,
-            )
-            .await?;
+        let mut events = get_feemanager_contract_events?;
+        let erc_transfer_events = erc_transfer_events?;
+
         events.extend(erc_transfer_events);
         let b = BlockInfo {
             storage: storage.unwrap(),

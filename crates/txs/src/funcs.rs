@@ -3,7 +3,8 @@
 #[allow(unused_imports)]
 use super::*;
 use primitives::{
-    env::get_mainnet_chain_id,
+    chain_type::get_chain_type,
+    env::{get_delay_seconds_by_chain_type, get_mainnet_chain_id},
     types::{CrossTxData, CrossTxRawData},
 };
 use serde::{Deserialize, Serialize};
@@ -49,39 +50,46 @@ impl TxsCrawler {
 
     pub async fn request_txs(
         &self,
-        target_chain_id: u64,
+        chains: Vec<u64>,
         start_timestamp: u64,
         end_timestamp: u64,
-        delay_timestamp: u64,
     ) -> anyhow::Result<Vec<CrossTxRawData>> {
-        // let  span = tracing::span!(tracing::Level::INFO, "request_txs");
-        // let _enter = span.enter();
-        let start_timestamp =
-            start_timestamp
-                .checked_sub(delay_timestamp)
+        let mut js: Value = json!({
+            "id": "1",
+            "jsonrpc": "2.0",
+            "method": self.method,
+            "params": [
+            ]
+        });
+        for chain in chains.clone() {
+            let delay_second = get_delay_seconds_by_chain_type(get_chain_type(chain));
+            let start_timestamp =
+                start_timestamp
+                    .checked_sub(delay_second)
+                    .ok_or(anyhow::anyhow!(
+                        "start_timestamp checked_sub delay_timestamp error"
+                    ))?
+                    * 1000;
+            let end_timestamp = end_timestamp
+                .checked_sub(delay_second)
                 .ok_or(anyhow::anyhow!(
-                    "start_timestamp checked_sub delay_timestamp error"
+                    "end_timestamp checked_sub delay_timestamp error"
                 ))?
                 * 1000;
-        let end_timestamp = end_timestamp
-            .checked_sub(delay_timestamp)
-            .ok_or(anyhow::anyhow!(
-                "end_timestamp checked_sub delay_timestamp error"
-            ))?
-            * 1000;
+            let j: Value = json!({
+                "id": chain,
+                "timestamp": [start_timestamp, end_timestamp]
+            });
+            if let Some(par) = js.pointer_mut("/params") {
+                par.as_array_mut().unwrap().push(j);
+            }
+        }
+
         let res = self
             .client
             .post(self.url.clone())
             .headers(self.headers.clone())
-            .json(&json!({
-                "id": "1",
-                "jsonrpc": "2.0",
-                "method": self.method,
-                "params": [{
-                    "id": target_chain_id,
-                    "timestamp": [start_timestamp, end_timestamp]
-                }]
-            }))
+            .json(&js)
             .send()
             .await?;
 
@@ -89,25 +97,28 @@ impl TxsCrawler {
             || (res.status() == reqwest::StatusCode::CREATED)
         {
             let res: Value = serde_json::from_str(&res.text().await?)?;
+            let mut new_txs: Vec<CrossTxRawData> = vec![];
             // event!(Level::INFO, "response: {:#?}", res);
             // println!("response: {:#?}", res);
-            let res: &Value = &res["result"][target_chain_id.to_string()];
-            event!(
-                Level::INFO,
-                "start_timestamp: {}, end_timestamp: {}, chain id: {}, res: {:#?}",
-                start_timestamp,
-                end_timestamp,
-                target_chain_id,
-                res
-            );
-            let old_txs: Vec<CrossTxRawData> = serde_json::from_value(res.clone())?;
-            let mut new_txs: Vec<CrossTxRawData> = vec![];
-            for tx in old_txs {
-                // todo check source_time
-                event!(Level::INFO, "tx: {:?}", tx);
-                let mut tx = tx;
-                tx.target_time = tx.target_time + delay_timestamp * 1000;
-                new_txs.push(tx);
+            for chain in chains {
+                let res: &Value = &res["result"][chain.to_string()];
+                event!(
+                    Level::INFO,
+                    "start_timestamp: {}, end_timestamp: {}, chain id: {}, res: {:#?}",
+                    start_timestamp,
+                    end_timestamp,
+                    chain,
+                    res
+                );
+                let old_txs: Vec<CrossTxRawData> = serde_json::from_value(res.clone())?;
+                for tx in old_txs {
+                    // todo check source_time
+                    event!(Level::INFO, "tx: {:?}", tx);
+                    let mut tx = tx;
+                    tx.target_time = tx.target_time
+                        + get_delay_seconds_by_chain_type(get_chain_type(chain)) * 1000;
+                    new_txs.push(tx);
+                }
             }
             return Ok(new_txs);
         } else {

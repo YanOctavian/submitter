@@ -229,7 +229,7 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
     }
 
     let maker_profit_db = MakerProfitDB::new(sled_db.clone())?;
-    let mut support_chains: Vec<u64> = vec_unique(
+    let support_chains: Vec<u64> = vec_unique(
         SupportChains::new(get_chains_info_source_url())
             .get_support_chains()
             .await?,
@@ -254,121 +254,105 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                 let last_block_timestamp = last_block_info.storage.block_timestamp;
 
                 let mut new_txs: Vec<(CrossTxData, CrossTxProfit)> = Vec::new();
-                let mut count = 0;
-                let mut chain_count = 0;
-                while chain_count < support_chains.len() {
-                    let chain = support_chains[chain_count];
-                    event!(
-                    Level::INFO,
-                    "Block #{:}, crawling txs. chain id :{:?}, start_timestamp: {:?}, end_timestamp: {:?} ",
-                    now_block_info.storage.block_number,
-                        chain,
-                    last_block_timestamp,
-                    now_block_timestamp,
-                );
-                    match TxsCrawler::new(get_txs_source_url())
-                        .request_txs(
-                            chain,
-                            last_block_timestamp,
-                            now_block_timestamp,
-                            get_delay_seconds_by_chain_type(get_chain_type(chain)),
-                        )
-                        .await
-                    {
-                        Ok(txs) => {
-                            chain_count += 1;
-                            if !txs.is_empty() {
+                match TxsCrawler::new(get_txs_source_url())
+                    .request_txs(
+                        support_chains.clone(),
+                        last_block_timestamp,
+                        now_block_timestamp,
+                    )
+                    .await
+                {
+                    Ok(txs) => {
+                        if !txs.is_empty() {
+                            event!(
+                                Level::INFO,
+                                "successfully obtained {:} pieces of txs from chains {:?}",
+                                txs.clone().len(),
+                                support_chains.clone(),
+                            );
+                        }
+                        let mut tx_count = 0;
+                        while tx_count < txs.len() {
+                            let tx = txs[tx_count].clone();
+                            let tx: CrossTxData = tx.into();
+                            if let None = support_chains.iter().position(|p| p == &tx.target_chain)
+                            {
                                 event!(
-                                    Level::INFO,
-                                    "successfully obtained {:} pieces of txs from chain {:}",
-                                    txs.clone().len(),
-                                    chain,
+                                    Level::WARN,
+                                    "target chain id {:} is not support, continue",
+                                    tx.target_chain,
                                 );
+                                tx_count += 1;
+                                continue;
                             }
-                            let mut tx_count = 0;
-                            while tx_count < txs.len() {
-                                let tx = txs[tx_count].clone();
-                                let tx: CrossTxData = tx.into();
-                                if let None =
-                                    support_chains.iter().position(|p| p == &tx.target_chain)
+                            if let None = support_chains.iter().position(|p| p == &tx.source_chain)
+                            {
+                                tx_count += 1;
+                                event!(
+                                    Level::WARN,
+                                    "source chain id {:} is not support, continue",
+                                    tx.source_chain,
+                                );
+                                continue;
+                            }
+                            let token = tx.source_token;
+                            let dealer = tx.dealer_address;
+                            let mainnet_chain_id = get_mainnet_chain_id();
+                            let mut percent = 0u64;
+                            if let Some(p) =
+                                maker_profit_db.get_percent(dealer, now_block, token)?
+                            {
+                                percent = p;
+                            } else {
+                                if let Ok(p) = contract
+                                    .get_dealer_profit_percent_by_block(
+                                        dealer,
+                                        last_block_number,
+                                        mainnet_chain_id,
+                                        token,
+                                    )
+                                    .await
                                 {
-                                    event!(
-                                        Level::WARN,
-                                        "target chain id {:} is not support, continue",
-                                        tx.target_chain,
-                                    );
-                                    tx_count += 1;
-                                    continue;
-                                }
-                                if let None =
-                                    support_chains.iter().position(|p| p == &tx.source_chain)
-                                {
-                                    tx_count += 1;
-                                    event!(
-                                        Level::WARN,
-                                        "source chain id {:} is not support, continue",
-                                        tx.source_chain,
-                                    );
-                                    continue;
-                                }
-                                let token = tx.source_token;
-                                let dealer = tx.dealer_address;
-                                let mainnet_chain_id = get_mainnet_chain_id();
-                                let mut percent = 0u64;
-                                if let Some(p) =
-                                    maker_profit_db.get_percent(dealer, now_block, token)?
-                                {
+                                    maker_profit_db.insert_percent(dealer, now_block, token, p)?;
                                     percent = p;
                                 } else {
-                                    if let Ok(p) = contract
-                                        .get_dealer_profit_percent_by_block(
-                                            dealer,
-                                            last_block_number,
-                                            mainnet_chain_id,
-                                            token,
-                                        )
-                                        .await
-                                    {
-                                        maker_profit_db
-                                            .insert_percent(dealer, now_block, token, p)?;
-                                        percent = p;
-                                    } else {
-                                        continue;
-                                    }
-                                };
-                                let profit = calculate_profit(percent as u64, tx.clone());
-                                event!(
-                                    Level::INFO,
-                                    "Block #{:} - dealer {:} - profit percent: {:?}",
-                                    now_block, dealer, percent,
-                                );
-
-                                new_txs.push((tx.clone(), profit.clone()));
-                                event!(
-                                    Level::INFO,
-                                    "Block #{:} - tx {:} - profit: {:?}",
-                                    now_block_info.storage.block_number,
-                                    hex::encode(tx.target_id.as_slice()),
-                                    profit,
-                                );
-                                count += 1;
-                                tx_count += 1;
-                            }
-                        }
-                        Err(e) => {
+                                    continue;
+                                }
+                            };
+                            let profit = calculate_profit(percent as u64, tx.clone());
                             event!(
-                                Level::WARN,
-                                "get txs err: {:?}. start: {:?}, end: {:?}. chain_id: {:?}",
-                                e,
-                                last_block_timestamp,
-                                now_block_timestamp,
-                                chain
+                                Level::INFO,
+                                "Block #{:} - dealer {:} - profit percent: {:?}",
+                                now_block,
+                                dealer,
+                                percent,
                             );
-                            tokio::time::sleep(Duration::from_secs(3)).await;
-                            continue;
+
+                            new_txs.push((tx.clone(), profit.clone()));
+                            event!(
+                                Level::INFO,
+                                "Block #{:} - tx {:} - profit: {:?}",
+                                now_block_info.storage.block_number,
+                                hex::encode(tx.target_id.as_slice()),
+                                profit,
+                            );
+                            tx_count += 1;
                         }
                     }
+                    Err(e) => {
+                        event!(
+                            Level::WARN,
+                            "get txs err: {:?}. start: {:?}, end: {:?}. chains: {:?}",
+                            e,
+                            last_block_timestamp,
+                            now_block_timestamp,
+                            support_chains.clone(),
+                        );
+                        tokio::time::sleep(Duration::from_secs(3)).await;
+                        continue;
+                    }
                 }
+                // }
                 now_block += 1;
                 txs_db.insert_txs(new_txs.clone())?;
                 block_txs_count_db
@@ -377,7 +361,7 @@ async fn crawl_txs_and_calculate_profit_for_per_block(
                     Level::INFO,
                     "Block #{:} - txs are saved. count: {:?}",
                     now_block_info.storage.block_number,
-                    count
+                    new_txs.len(),
                 );
             } else {
                 panic!("last block info is none.");
@@ -639,20 +623,30 @@ async fn submit_root(
             .await
         {
             Ok(r) => {
-                event!(Level::INFO, "Block #{:?}, submit root hash: {:?}", newest_block_info.storage.block_number, r);
+                event!(
+                    Level::INFO,
+                    "Block #{:?}, submit root hash: {:?}",
+                    newest_block_info.storage.block_number,
+                    r
+                );
                 if let Some(s) = r.1 {
                     submit_root_block_num = s.as_u64();
                 }
             }
             Err(e) => {
-                event!(Level::WARN, "Block #{:?}, submit root err: {:?}", newest_block_info.storage.block_number, e);
+                event!(
+                    Level::WARN,
+                    "Block #{:?}, submit root err: {:?}",
+                    newest_block_info.storage.block_number,
+                    e
+                );
                 match e {
                     Error::SubmitRootFailed(err, b) => {
                         if let Some(s) = b {
                             submit_root_block_num = s.as_u64();
                         }
                     }
-                    _ => {},
+                    _ => {}
                 }
             }
         }
