@@ -8,7 +8,7 @@ Completely decentralized.
 ## Installation
 
 ### Docker
-todo
+[docker/README.md](docker/README.md)
 
 ### Local
 

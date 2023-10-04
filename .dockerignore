@@ -1,0 +1,9 @@
+docs
+script
+db
+**target*
+.idea/
+Dockerfile
+.dockerignore
+.local
+.env*
