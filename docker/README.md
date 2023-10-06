@@ -10,6 +10,8 @@ Then to generate the latest wjy/submitter image. Please run:
 ./build.sh
 ```
 
+![docker_build](../docs/pics/docker_build.jpg)
+
 The image can be used by passing the selected binary followed by the appropriate tags for this binary.
 
 Your best guess to get started is to pass the `--help flag`. Here are a few examples:

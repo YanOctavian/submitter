@@ -10,7 +10,8 @@ FROM docker.io/library/ubuntu:20.04
 
 COPY --from=builder /submitter/target/release/submitter /usr/local/bin
 
-RUN useradd -m -u 1000 -U -s /bin/sh -d /submitter submitter && \
+RUN apt-get update -y && apt-get install libssl-dev -y && \
+    useradd -m -u 1000 -U -s /bin/sh -d /submitter submitter && \
 	mkdir -p /data /submitter/db && \
 	chown -R submitter:submitter /data && \
 	ln -s /data /submitter/db && \
