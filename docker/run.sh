@@ -9,5 +9,5 @@ if [ "$args" = "" ] ; then
 else
 printf "*** Running Submitter Docker container with provided arguments: $args\n\n"
 docker run --rm -it wjy/submitter $args
-#fi
+fi
 
