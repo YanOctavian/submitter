@@ -39,7 +39,7 @@ cargo build --release
 6. configure environment variables
 ```shell
 # Ethereum node https url
-export NETWORK_RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/-e53KLekEWi1sTblk40_P9z_qr_jTHTd"
+export NETWORK_RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/xxx"
 # Ethereum network chain id
 export MAINNET_CHAIN_ID=1
 

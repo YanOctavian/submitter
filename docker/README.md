@@ -5,7 +5,7 @@ There is no requirement on having Rust or any other toolchain installed but a wo
 
 First, install [Docker](https://docs.docker.com/get-docker/).
 
-Then to generate the latest parity/substrate image. Please run:
+Then to generate the latest wjy/submitter image. Please run:
 ```sh
 ./build.sh
 ```
